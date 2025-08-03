@@ -4,7 +4,7 @@
 
 Backend API cho hệ thống bán website với Node.js, TypeScript, Express và Sequelize.
 
-**Base URL:** `http://localhost:3000/api/v1`
+**Base URL:** `http://localhost:8000/api/v1`
 
 ## 🔧 Setup
 
@@ -12,14 +12,14 @@ Backend API cho hệ thống bán website với Node.js, TypeScript, Express và
 Tạo file `.env` từ `env.example`:
 ```env
 NODE_ENV=development
-PORT=3000
+PORT=8000
 HOST=localhost
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=nova_sites_db
 DB_USER=root
 DB_PASSWORD=your_password
-ALLOWED_ORIGINS=http://localhost:3000
+ALLOWED_ORIGINS=http://localhost:8000
 ```
 
 ### Database Setup
@@ -752,12 +752,12 @@ GET /api/v1/products/price-range/100/1000?page=1&limit=10&sortBy=price&sortOrder
 
 ### 1. Health Check
 ```
-GET http://localhost:3000/api/v1/health
+GET http://localhost:8000/api/v1/health
 ```
 
 ### 2. Tạo Category
 ```
-POST http://localhost:3000/api/v1/categories
+POST http://localhost:8000/api/v1/categories
 Content-Type: application/json
 
 {
@@ -769,7 +769,7 @@ Content-Type: application/json
 
 ### 3. Tạo Product
 ```
-POST http://localhost:3000/api/v1/products
+POST http://localhost:8000/api/v1/products
 Content-Type: application/json
 
 {
@@ -783,17 +783,17 @@ Content-Type: application/json
 
 ### 4. Lấy Products với Filter
 ```
-GET http://localhost:3000/api/v1/products?page=1&limit=10&sortBy=price&sortOrder=ASC&categoryId=1&minPrice=100&maxPrice=1000
+GET http://localhost:8000/api/v1/products?page=1&limit=10&sortBy=price&sortOrder=ASC&categoryId=1&minPrice=100&maxPrice=1000
 ```
 
 ### 5. Tìm kiếm Products
 ```
-GET http://localhost:3000/api/v1/products/search?search=ecommerce&page=1&limit=10
+GET http://localhost:8000/api/v1/products/search?search=ecommerce&page=1&limit=10
 ```
 
 ### 6. Lấy Products theo Price Range
 ```
-GET http://localhost:3000/api/v1/products/price-range/100/1000?page=1&limit=10
+GET http://localhost:8000/api/v1/products/price-range/100/1000?page=1&limit=10
 ```
 
 ---
@@ -849,5 +849,5 @@ CREATE TABLE products (
 Nếu có vấn đề, vui lòng kiểm tra:
 1. Database connection
 2. Environment variables
-3. Port availability (3000)
+3. Port availability (8000)
 4. MySQL service status 
