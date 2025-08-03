@@ -75,7 +75,7 @@ api/
    Chỉnh sửa file `.env` với thông tin database và các cấu hình khác:
    ```env
    NODE_ENV=development
-   PORT=3000
+   PORT=8000
    DB_HOST=localhost
    DB_PORT=3306
    DB_NAME=nova_sites_db
@@ -251,7 +251,7 @@ npm run test:watch   # Watch mode for tests
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `NODE_ENV` | Environment | `development` |
-| `PORT` | Server port | `3000` |
+| `PORT` | Server port | `8000` |
 | `HOST` | Server host | `localhost` |
 | `DB_HOST` | Database host | `localhost` |
 | `DB_PORT` | Database port | `3306` |
@@ -259,7 +259,7 @@ npm run test:watch   # Watch mode for tests
 | `DB_USER` | Database user | `root` |
 | `DB_PASSWORD` | Database password | - |
 | `JWT_SECRET` | JWT secret key | - |
-| `ALLOWED_ORIGINS` | CORS origins | `http://localhost:3000` |
+| `ALLOWED_ORIGINS` | CORS origins | `http://localhost:8000` |
 
 ## 🤝 Contributing
 

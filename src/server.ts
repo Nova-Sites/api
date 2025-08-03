@@ -26,7 +26,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env['ALLOWED_ORIGINS']?.split(',') || ['http://localhost:3000'],
+    origin: process.env['ALLOWED_ORIGINS']?.split(',') || ['http://localhost:8000'],
     credentials: true,
   },
 });
@@ -45,7 +45,7 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: process.env['ALLOWED_ORIGINS']?.split(',') || ['http://localhost:3000'],
+  origin: process.env['ALLOWED_ORIGINS']?.split(',') || ['http://localhost:8000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -96,7 +96,7 @@ const startServer = async () => {
     //   console.log('✅ Database synchronized.');
     // }
 
-    const PORT = process.env['PORT'] || 3000;
+    const PORT = process.env['PORT'] || 8000;
     const HOST = process.env['HOST'] || 'localhost';
 
     server.listen(PORT, () => {
