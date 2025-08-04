@@ -1,10 +1,8 @@
-import dotenv from 'dotenv';
-import { Sequelize } from 'sequelize';
+const dotenv = require('dotenv');
 
 dotenv.config();
-const env = process.env['NODE_ENV'] || 'development';
 
-const config = {
+module.exports = {
     development: {
         username: process.env.DB_USER || 'root',
         password: process.env.DB_PASSWORD || '',
@@ -12,6 +10,14 @@ const config = {
         host: process.env.DB_HOST || 'localhost',
         port: parseInt(process.env.DB_PORT || '3306'),
         dialect: 'mysql',
+        logging: console.log,
+        pool: {
+            max: 5,
+            min: 0,
+            acquire: 30000,
+            idle: 10000,
+        },
+        timezone: '+07:00',
         define: {
             timestamps: true,
             underscored: true,
@@ -20,10 +26,11 @@ const config = {
     },
     test: {
         username: 'root',
-        password: null,
+        password: '',
         database: 'database_test',
         host: '127.0.0.1',
         dialect: 'mysql',
+        logging: false,
         define: {
             timestamps: true,
             underscored: true,
@@ -36,6 +43,14 @@ const config = {
         database: process.env.DB_NAME,
         host: process.env.DB_HOST,
         dialect: 'mysql',
+        logging: false,
+        pool: {
+            max: 10,
+            min: 2,
+            acquire: 30000,
+            idle: 10000,
+        },
+        timezone: '+07:00',
         define: {
             timestamps: true,
             underscored: true,
@@ -43,14 +58,3 @@ const config = {
         }
     }
 };
-
-const currentConfig = config[env];
-
-const sequelize = new Sequelize(
-    currentConfig.database,
-    currentConfig.username,
-    currentConfig.password,
-    currentConfig
-);
-
-export default sequelize;

@@ -26,6 +26,20 @@ export interface IProduct {
   updatedAt: Date;
 }
 
+export interface IUser {
+  id: number;
+  username: string;
+  email: string;
+  password: string;
+  isActive: boolean;
+  otp?: string | null;
+  otpExpiresAt?: Date | null;
+  image?: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // Request Extensions
 export interface AuthenticatedRequest extends Request {
   user?: {
