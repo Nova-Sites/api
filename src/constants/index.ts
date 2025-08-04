@@ -78,4 +78,18 @@ export const PAGINATION = {
 export const PERFORMANCE_CONSTANTS = {
   SLOW_REQUEST_THRESHOLD: 1000, // 1 second
   MAX_RESPONSE_TIME: 5000, // 5 seconds
+} as const;
+
+// User Roles
+export const USER_ROLES = {
+  ROLE_ADMIN: 'ROLE_ADMIN',
+  ROLE_USER: 'ROLE_USER',
+  ROLE_STAFF: 'ROLE_STAFF',
+} as const;
+
+// OTP Constants
+export const OTP_CONSTANTS = {
+  LENGTH: 6,
+  EXPIRES_IN_MINUTES: 10,
+  MAX_ATTEMPTS: 3,
 } as const; 

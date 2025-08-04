@@ -45,6 +45,31 @@ export const PRODUCT_ROUTES = {
   SOFT_DELETE: '/:id/soft-delete',
 } as const;
 
+// Auth Route Paths
+export const AUTH_ROUTES = {
+  BASE: '/',
+  REGISTER: '/register',
+  VERIFY_OTP: '/verify-otp',
+  RESEND_OTP: '/resend-otp',
+  LOGIN: '/login',
+  LOGOUT: '/logout',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
+} as const;
+
+// User Route Paths
+export const USER_ROUTES = {
+  BASE: '/',
+  GET_ALL: '/',
+  GET_BY_ID: '/:id',
+  GET_PROFILE: '/profile',
+  UPDATE_PROFILE: '/profile',
+  UPDATE_AVATAR: '/profile/avatar',
+  CHANGE_PASSWORD: '/change-password',
+  DELETE: '/:id',
+  SOFT_DELETE: '/:id/soft-delete',
+} as const;
+
 // Full API Paths (for documentation and testing)
 export const API_PATHS = {
   // Categories
@@ -73,6 +98,29 @@ export const API_PATHS = {
     UPDATE: '/api/v1/products/:id',
     DELETE: '/api/v1/products/:id',
     SOFT_DELETE: '/api/v1/products/:id/soft-delete',
+  },
+  
+  // Auth
+  AUTH: {
+    REGISTER: '/api/v1/auth/register',
+    VERIFY_OTP: '/api/v1/auth/verify-otp',
+    RESEND_OTP: '/api/v1/auth/resend-otp',
+    LOGIN: '/api/v1/auth/login',
+    LOGOUT: '/api/v1/auth/logout',
+    FORGOT_PASSWORD: '/api/v1/auth/forgot-password',
+    RESET_PASSWORD: '/api/v1/auth/reset-password',
+  },
+  
+  // Users
+  USERS: {
+    GET_ALL: '/api/v1/users',
+    GET_BY_ID: '/api/v1/users/:id',
+    GET_PROFILE: '/api/v1/users/profile',
+    UPDATE_PROFILE: '/api/v1/users/profile',
+    UPDATE_AVATAR: '/api/v1/users/profile/avatar',
+    CHANGE_PASSWORD: '/api/v1/users/change-password',
+    DELETE: '/api/v1/users/:id',
+    SOFT_DELETE: '/api/v1/users/:id/soft-delete',
   },
   
   // Health Check
