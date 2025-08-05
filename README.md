@@ -103,6 +103,27 @@ api/
 
 ## 📚 API Endpoints
 
+### Authentication
+- `POST /api/v1/auth/register` - Đăng ký tài khoản mới
+- `POST /api/v1/auth/verify-otp` - Xác thực OTP để kích hoạt tài khoản
+- `POST /api/v1/auth/resend-otp` - Gửi lại OTP
+- `POST /api/v1/auth/login` - Đăng nhập (to be implemented)
+- `POST /api/v1/auth/logout` - Đăng xuất (to be implemented)
+- `POST /api/v1/auth/forgot-password` - Quên mật khẩu (to be implemented)
+- `POST /api/v1/auth/reset-password` - Đặt lại mật khẩu (to be implemented)
+
+### Users
+- `GET /api/v1/users` - Lấy danh sách tất cả users
+- `GET /api/v1/users/:id` - Lấy user theo ID
+- `GET /api/v1/users/profile` - Lấy thông tin profile của user hiện tại (to be implemented)
+- `PUT /api/v1/users/profile` - Cập nhật profile của user hiện tại (to be implemented)
+- `PUT /api/v1/users/profile/avatar` - Cập nhật avatar của user (to be implemented)
+- `PUT /api/v1/users/change-password` - Đổi mật khẩu (to be implemented)
+- `DELETE /api/v1/users/:id` - Xóa user (soft delete)
+- `PATCH /api/v1/users/:id/soft-delete` - Soft delete user
+- `GET /api/v1/users/role/:role` - Lấy users theo role
+- `GET /api/v1/users/search` - Tìm kiếm users
+
 ### Categories
 - `GET /api/v1/categories` - Lấy danh sách categories
 - `GET /api/v1/categories/search` - Tìm kiếm categories
@@ -185,6 +206,19 @@ export const PRODUCT_ROUTES = {
 - `created_at` (TIMESTAMP)
 - `updated_at` (TIMESTAMP)
 
+### Users Table
+- `id` (INT, PK, Auto Increment)
+- `username` (VARCHAR(50), UNIQUE, NOT NULL)
+- `email` (VARCHAR(255), UNIQUE, NOT NULL)
+- `password` (VARCHAR(255), NOT NULL)
+- `is_active` (BOOLEAN, DEFAULT FALSE)
+- `otp` (VARCHAR(6), NULL)
+- `otp_expires_at` (DATETIME, NULL)
+- `image` (VARCHAR(500), NULL)
+- `role` (ENUM('ROLE_ADMIN', 'ROLE_USER', 'ROLE_STAFF'), DEFAULT 'ROLE_USER')
+- `created_at` (TIMESTAMP)
+- `updated_at` (TIMESTAMP)
+
 ## 🚀 Scripts
 
 ```bash
@@ -260,6 +294,11 @@ npm run test:watch   # Watch mode for tests
 | `DB_PASSWORD` | Database password | - |
 | `JWT_SECRET` | JWT secret key | - |
 | `ALLOWED_ORIGINS` | CORS origins | `http://localhost:8000` |
+| `EMAIL_HOST` | SMTP host | `smtp.gmail.com` |
+| `EMAIL_PORT` | SMTP port | `587` |
+| `EMAIL_USER` | Email username | - |
+| `EMAIL_PASS` | Email password/app password | - |
+| `FRONTEND_URL` | Frontend URL | `http://localhost:3000` |
 
 ## 🤝 Contributing
 
