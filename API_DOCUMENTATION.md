@@ -20,6 +20,11 @@ DB_NAME=nova_sites_db
 DB_USER=root
 DB_PASSWORD=your_password
 ALLOWED_ORIGINS=http://localhost:8000
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password
+FRONTEND_URL=http://localhost:3000
 ```
 
 ### Database Setup
@@ -702,6 +707,430 @@ GET /api/v1/products/price-range/100/1000?page=1&limit=10&sortBy=price&sortOrder
 
 ---
 
+### Authentication
+
+#### POST /api/v1/auth/register
+Đăng ký tài khoản mới
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "image": "https://example.com/avatar.jpg"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Registration successful. Please check your email for OTP verification.",
+  "data": {
+    "user": {
+      "id": 1,
+      "username": "john_doe",
+      "email": "john@example.com",
+      "image": "https://example.com/avatar.jpg",
+      "isActive": false,
+      "role": "ROLE_USER",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "message": "Registration successful. Please check your email for OTP verification."
+  }
+}
+```
+
+#### POST /api/v1/auth/verify-otp
+Xác thực OTP để kích hoạt tài khoản
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "email": "john@example.com",
+  "otp": "123456"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Account verified successfully",
+  "data": {
+    "user": {
+      "id": 1,
+      "username": "john_doe",
+      "email": "john@example.com",
+      "image": "https://example.com/avatar.jpg",
+      "isActive": true,
+      "role": "ROLE_USER",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "message": "Account verified successfully"
+  }
+}
+```
+
+#### POST /api/v1/auth/resend-otp
+Gửi lại OTP
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "email": "john@example.com"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "OTP resent successfully. Please check your email.",
+  "data": {
+    "user": {
+      "id": 1,
+      "username": "john_doe",
+      "email": "john@example.com",
+      "image": "https://example.com/avatar.jpg",
+      "isActive": false,
+      "role": "ROLE_USER",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "message": "OTP resent successfully. Please check your email."
+  }
+}
+```
+
+#### POST /api/v1/auth/login
+Đăng nhập (to be implemented)
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Login endpoint - to be implemented",
+  "data": {
+    "message": "Login endpoint - to be implemented"
+  }
+}
+```
+
+#### POST /api/v1/auth/logout
+Đăng xuất (to be implemented)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Logout successful",
+  "data": null
+}
+```
+
+#### POST /api/v1/auth/forgot-password
+Quên mật khẩu (to be implemented)
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "email": "john@example.com"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Password reset email sent",
+  "data": {
+    "message": "Password reset email sent"
+  }
+}
+```
+
+#### POST /api/v1/auth/reset-password
+Đặt lại mật khẩu (to be implemented)
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "token": "reset_token_here",
+  "newPassword": "newpassword123"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Password reset successful",
+  "data": {
+    "message": "Password reset successful"
+  }
+}
+```
+
+---
+
+### Users
+
+#### GET /api/v1/users
+Lấy danh sách tất cả users
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Data fetched successfully",
+  "data": [
+    {
+      "id": 1,
+      "username": "john_doe",
+      "email": "john@example.com",
+      "image": "https://example.com/avatar.jpg",
+      "isActive": true,
+      "role": "ROLE_USER",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+#### GET /api/v1/users/:id
+Lấy user theo ID
+
+**Parameters:**
+- `id` (number): ID của user
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Data fetched successfully",
+  "data": {
+    "id": 1,
+    "username": "john_doe",
+    "email": "john@example.com",
+    "image": "https://example.com/avatar.jpg",
+    "isActive": true,
+    "role": "ROLE_USER",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
+#### GET /api/v1/users/profile
+Lấy thông tin profile của user hiện tại (to be implemented)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "User profile endpoint - to be implemented",
+  "data": {
+    "message": "User profile endpoint - to be implemented"
+  }
+}
+```
+
+#### PUT /api/v1/users/profile
+Cập nhật profile của user hiện tại (to be implemented)
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "username": "new_username",
+  "email": "newemail@example.com",
+  "image": "https://example.com/new-avatar.jpg"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Profile update endpoint - to be implemented",
+  "data": {
+    "message": "Profile update endpoint - to be implemented"
+  }
+}
+```
+
+#### PUT /api/v1/users/profile/avatar
+Cập nhật avatar của user (to be implemented)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Avatar update endpoint - to be implemented",
+  "data": {
+    "message": "Avatar update endpoint - to be implemented"
+  }
+}
+```
+
+#### PUT /api/v1/users/change-password
+Đổi mật khẩu (to be implemented)
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "currentPassword": "oldpassword123",
+  "newPassword": "newpassword123"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Password change endpoint - to be implemented",
+  "data": {
+    "message": "Password change endpoint - to be implemented"
+  }
+}
+```
+
+#### DELETE /api/v1/users/:id
+Xóa user (soft delete)
+
+**Parameters:**
+- `id` (number): ID của user
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Resource deleted successfully",
+  "data": null
+}
+```
+
+#### PATCH /api/v1/users/:id/soft-delete
+Soft delete user
+
+**Parameters:**
+- `id` (number): ID của user
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Resource deleted successfully",
+  "data": null
+}
+```
+
+#### GET /api/v1/users/role/:role
+Lấy users theo role
+
+**Parameters:**
+- `role` (string): Role của user (ROLE_ADMIN, ROLE_USER, ROLE_STAFF)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Data fetched successfully",
+  "data": [
+    {
+      "id": 1,
+      "username": "john_doe",
+      "email": "john@example.com",
+      "image": "https://example.com/avatar.jpg",
+      "isActive": true,
+      "role": "ROLE_USER",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+#### GET /api/v1/users/search?search=keyword
+Tìm kiếm users
+
+**Query Parameters:**
+- `search` (string): Từ khóa tìm kiếm (username hoặc email)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Data fetched successfully",
+  "data": [
+    {
+      "id": 1,
+      "username": "john_doe",
+      "email": "john@example.com",
+      "image": "https://example.com/avatar.jpg",
+      "isActive": true,
+      "role": "ROLE_USER",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
 ## 🔒 Security Features
 
 ### Validation
@@ -767,7 +1196,31 @@ Content-Type: application/json
 }
 ```
 
-### 3. Tạo Product
+### 3. Đăng ký User
+```
+POST http://localhost:8000/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "image": "https://example.com/avatar.jpg"
+}
+```
+
+### 4. Xác thực OTP
+```
+POST http://localhost:8000/api/v1/auth/verify-otp
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "otp": "123456"
+}
+```
+
+### 5. Tạo Product
 ```
 POST http://localhost:8000/api/v1/products
 Content-Type: application/json
@@ -781,17 +1234,32 @@ Content-Type: application/json
 }
 ```
 
-### 4. Lấy Products với Filter
+### 6. Lấy Users
+```
+GET http://localhost:8000/api/v1/users
+```
+
+### 7. Tìm kiếm Users
+```
+GET http://localhost:8000/api/v1/users/search?search=john
+```
+
+### 8. Lấy Users theo Role
+```
+GET http://localhost:8000/api/v1/users/role/ROLE_USER
+```
+
+### 9. Lấy Products với Filter
 ```
 GET http://localhost:8000/api/v1/products?page=1&limit=10&sortBy=price&sortOrder=ASC&categoryId=1&minPrice=100&maxPrice=1000
 ```
 
-### 5. Tìm kiếm Products
+### 10. Tìm kiếm Products
 ```
 GET http://localhost:8000/api/v1/products/search?search=ecommerce&page=1&limit=10
 ```
 
-### 6. Lấy Products theo Price Range
+### 11. Lấy Products theo Price Range
 ```
 GET http://localhost:8000/api/v1/products/price-range/100/1000?page=1&limit=10
 ```
@@ -829,6 +1297,23 @@ CREATE TABLE products (
   created_at DATETIME NOT NULL,
   updated_at DATETIME NOT NULL,
   FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+);
+```
+
+### Users Table
+```sql
+CREATE TABLE users (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  is_active BOOLEAN DEFAULT FALSE,
+  otp VARCHAR(6) NULL,
+  otp_expires_at DATETIME NULL,
+  image VARCHAR(500) NULL,
+  role ENUM('ROLE_ADMIN', 'ROLE_USER', 'ROLE_STAFF') DEFAULT 'ROLE_USER',
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL
 );
 ```
 
