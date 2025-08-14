@@ -6,11 +6,13 @@ import {
   resendOTP,
   login,
   logout,
+  refreshToken,
   forgotPassword,
   resetPassword,
 } from '@/controllers/auth.controller';
 import { validate } from '@/middlewares/validator';
 import { AUTH_ROUTES } from '@/constants';
+import { extractTokensFromCookies } from '@/middlewares/cookieAuth';
 
 const router = Router();
 
@@ -81,6 +83,13 @@ const validateResetPassword = [
     .withMessage('New password must be at least 6 characters'),
 ];
 
+const validateRefreshToken = [
+  body('refreshToken')
+    .optional() // Make it optional since it can come from cookies
+    .notEmpty()
+    .withMessage('Refresh token is required'),
+];
+
 // POST /api/v1/auth/register - Register new user
 router.post(
   AUTH_ROUTES.REGISTER,
@@ -113,6 +122,14 @@ router.post(
 router.post(
   AUTH_ROUTES.LOGOUT,
   logout
+);
+
+// POST /api/v1/auth/refresh-token - Refresh access token
+router.post(
+  AUTH_ROUTES.REFRESH_TOKEN,
+  extractTokensFromCookies, // Extract tokens from cookies
+  validate(validateRefreshToken),
+  refreshToken
 );
 
 // POST /api/v1/auth/forgot-password - Forgot password

@@ -83,8 +83,10 @@ export const PERFORMANCE_CONSTANTS = {
 // User Roles
 export const USER_ROLES = {
   ROLE_ADMIN: 'ROLE_ADMIN',
-  ROLE_USER: 'ROLE_USER',
   ROLE_STAFF: 'ROLE_STAFF',
+  ROLE_USER: 'ROLE_USER',
+  ROLE_GUEST: 'ROLE_GUEST',
+  ROLE_SUPER_ADMIN: 'ROLE_SUPER_ADMIN',
 } as const;
 
 // OTP Constants
@@ -93,3 +95,36 @@ export const OTP_CONSTANTS = {
   EXPIRES_IN_MINUTES: 10,
   MAX_ATTEMPTS: 3,
 } as const; 
+
+// Cookie Constants
+export const COOKIE_CONSTANTS = {
+  ACCESS_TOKEN_COOKIE_NAME: 'access_token',
+  REFRESH_TOKEN_COOKIE_NAME: 'refresh_token',
+  ACCESS_TOKEN_COOKIE_PATH: '/',
+  REFRESH_TOKEN_COOKIE_PATH: '/api/v1/auth/refresh-token',
+} as const;
+
+// SameSite Options
+export const SAME_SITE_OPTIONS = {
+  STRICT: 'strict',
+  LAX: 'lax',
+  NONE: 'none',
+} as const;
+
+// Token Types
+export const TOKEN_TYPES = {
+  ACCESS: 'access',
+  REFRESH: 'refresh',
+} as const;
+
+// Token Expiration Constants
+export const TOKEN_EXPIRATION_CONSTANTS = {
+  ACCESS_TOKEN_EXPIRES_IN: 24 * 60 * 60, // 24 hours
+  REFRESH_TOKEN_EXPIRES_IN: 7 * 24 * 60 * 60, // 7 days
+} as const;
+
+// Development Environment
+export const DEVELOPMENT_ENVIRONMENT = 'development';
+
+// Production Environment
+export const PRODUCTION_ENVIRONMENT = 'production';

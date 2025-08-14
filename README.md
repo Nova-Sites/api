@@ -10,13 +10,13 @@ Backend API cho hệ thống bán website với Node.js, TypeScript, Express và
 - **MySQL**: Database chính với optimized queries
 - **Socket.IO**: Real-time communication
 - **JWT Authentication**: Secure authentication với refresh tokens
+- **Cookie Management**: HttpOnly cookies với path-based security
 - **File Upload**: Hỗ trợ upload ảnh với validation
 - **API Documentation**: RESTful API với comprehensive docs
 - **Error Handling**: Comprehensive error handling với custom error types
 - **Input Validation**: Express-validator với custom validation rules
 - **CORS**: Cross-origin resource sharing với security headers
 - **Helmet**: Security headers với CSP configuration
-
 - **Logging**: Custom logging với performance monitoring
 - **Service Layer**: Separation of concerns với business logic isolation
 - **Path Aliases**: Clean imports với `@/` prefix
@@ -215,7 +215,7 @@ export const PRODUCT_ROUTES = {
 - `otp` (VARCHAR(6), NULL)
 - `otp_expires_at` (DATETIME, NULL)
 - `image` (VARCHAR(500), NULL)
-- `role` (ENUM('ROLE_ADMIN', 'ROLE_USER', 'ROLE_STAFF'), DEFAULT 'ROLE_USER')
+- `role` (ENUM('ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_USER', 'ROLE_GUEST'), DEFAULT 'ROLE_USER')
 - `created_at` (TIMESTAMP)
 - `updated_at` (TIMESTAMP)
 
@@ -233,6 +233,11 @@ npm run db:migrate:undo      # Undo last migration
 npm run db:migrate:status    # Check migration status
 npm run db:seed:all          # Run all seeders
 
+# User Management
+npm run create:superadmin    # Create super admin account
+npm run create:admin         # Create admin account
+npm run create:user          # Create user with custom role
+
 # Linting
 npm run lint         # Run ESLint
 npm run lint:fix     # Fix ESLint errors
@@ -240,7 +245,55 @@ npm run lint:fix     # Fix ESLint errors
 # Testing
 npm run test         # Run tests
 npm run test:watch   # Watch mode for tests
+npm run test:login   # Test login functionality
+npm run test:cookies # Test cookie functionality
 ```
+
+### Creating Admin Accounts
+
+Sau khi setup database và chạy migrations, bạn có thể tạo tài khoản admin bằng các lệnh sau:
+
+#### Tạo Super Admin Account
+```bash
+npm run create:superadmin
+```
+
+#### Tạo Admin Account
+```bash
+npm run create:admin
+```
+
+#### Tạo User với Role Tùy Chọn
+```bash
+npm run create:user
+```
+
+Script sẽ yêu cầu bạn nhập:
+- **Username**: 3-50 ký tự, chỉ chứa chữ cái, số và dấu gạch dưới
+- **Email**: Email hợp lệ
+- **Password**: Tối thiểu 6 ký tự
+- **Confirm Password**: Xác nhận lại mật khẩu
+- **Role**: Chọn role từ danh sách có sẵn
+
+**Tài khoản Super Admin** sẽ được tạo với:
+- Role: `ROLE_SUPER_ADMIN`
+- Status: `Active` (không cần xác thực OTP)
+- Quyền truy cập đầy đủ vào hệ thống
+
+**Tài khoản Admin** sẽ được tạo với:
+- Role: `ROLE_ADMIN`
+- Status: `Active` (không cần xác thực OTP)
+- Quyền quản lý hệ thống (nhưng không có quyền super admin)
+
+**Tài khoản User với Role Tùy Chọn**:
+- Có thể chọn bất kỳ role nào từ danh sách có sẵn
+- Super Admin, Admin, Staff: `Active` (không cần xác thực OTP)
+- User, Guest: `Inactive` (cần xác thực OTP để kích hoạt)
+
+**Lưu ý**: 
+- Chỉ tạo một tài khoản super admin duy nhất để quản lý hệ thống
+- Có thể tạo nhiều tài khoản admin để phân chia công việc quản lý
+- Script `create:user` cho phép tạo user với role linh hoạt
 
 ## 🔧 Configuration
 
@@ -268,6 +321,42 @@ npm run test:watch   # Watch mode for tests
 - Caching middleware cho performance
 - Input validation với express-validator
 
+## 🔐 Authentication & Cookie Management
+
+### JWT Authentication
+- **Access Token**: 24 giờ với path `/`
+- **Refresh Token**: 7 ngày với path `/api/v1/auth/refresh-token`
+- **Dual Token System**: Access token cho API calls, refresh token cho token renewal
+- **Secure Storage**: HttpOnly cookies với path-based security
+
+### Cookie Configuration
+- **Access Token Cookie**:
+  - Path: `/` (available for all routes)
+  - HttpOnly: `true` (not accessible via JavaScript)
+  - Secure: `true` in production (HTTPS only)
+  - SameSite: `strict` (CSRF protection)
+  - Max Age: 24 hours
+
+- **Refresh Token Cookie**:
+  - Path: `/api/v1/auth/refresh-token` (restricted access)
+  - HttpOnly: `true` (not accessible via JavaScript)
+  - Secure: `true` in production (HTTPS only)
+  - SameSite: `strict` (CSRF protection)
+  - Max Age: 7 days
+
+### Authentication Flow
+1. **Login**: User credentials → Access + Refresh tokens → HttpOnly cookies
+2. **API Access**: Access token from cookies → API authorization
+3. **Token Refresh**: Refresh token from cookies → New access token
+4. **Logout**: Clear all authentication cookies
+
+### Security Benefits
+- **Path Isolation**: Refresh token only accessible at specific endpoint
+- **HttpOnly Protection**: Tokens not accessible via XSS attacks
+- **Secure Transport**: HTTPS-only in production
+- **CSRF Protection**: SameSite strict prevents cross-site requests
+- **Automatic Cleanup**: Cookies expire automatically
+
 ## 🛡️ Security
 
 - **Helmet.js**: Security headers với CSP configuration
@@ -276,7 +365,7 @@ npm run test:watch   # Watch mode for tests
 - **SQL Injection Prevention**: Sequelize ORM với parameterized queries
 - **XSS Protection**: Content Security Policy headers
 - **Rate Limiting**: Multiple rate limiters cho different endpoints
-- **Authentication**: JWT với secure token handling
+- **Authentication**: JWT với secure token handling và HttpOnly cookies
 - **File Upload Security**: File type và size validation
 - **Error Handling**: Secure error messages không leak sensitive info
 
