@@ -3,6 +3,8 @@ import { User } from '@/models';
 import { IUser } from '@/types';
 import { USER_ROLES, OTP_CONSTANTS } from '@/constants';
 import { EmailService } from './email.service';
+import { UserValidationUtils } from '@/utils/userValidation';
+import { JWTUtils, TokenPair } from '@/utils/jwtUtils';
 import { Op } from 'sequelize';
 
 export class UserService {
@@ -67,6 +69,13 @@ export class UserService {
   }
 
   /**
+   * Check if user exists (optimized version using utility)
+   */
+  static async checkUserExists(username: string, email: string): Promise<{ exists: boolean; existingUser?: any }> {
+    return await UserValidationUtils.checkUserExists(username, email);
+  }
+
+  /**
    * Register new user
    */
   static async registerUser(userData: {
@@ -75,20 +84,14 @@ export class UserService {
     password: string;
     image?: string;
   }): Promise<{ user: IUser; otp: string }> {
-    // Check if email or username already exists
-    const emailExists = await this.isEmailExists(userData.email);
-    if (emailExists) {
-      throw new Error('Email already exists');
+    // Check if user already exists using optimized utility
+    const existenceCheck = await this.checkUserExists(userData.username, userData.email);
+    if (existenceCheck.exists) {
+      throw new Error('User with this username or email already exists');
     }
 
-    const usernameExists = await this.isUsernameExists(userData.username);
-    if (usernameExists) {
-      throw new Error('Username already exists');
-    }
-
-    // Hash password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
+    // Hash password using utility
+    const hashedPassword = await UserValidationUtils.hashPassword(userData.password);
 
     // Generate OTP
     const otp = EmailService.generateOTP();
@@ -250,9 +253,8 @@ export class UserService {
       throw new Error('Current password is incorrect');
     }
 
-    // Hash new password
-    const saltRounds = 10;
-    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+    // Hash new password using utility
+    const hashedNewPassword = await UserValidationUtils.hashPassword(newPassword);
 
     // Update password
     await user.update({ password: hashedNewPassword });
@@ -298,5 +300,102 @@ export class UserService {
       attributes: { exclude: ['password', 'otp', 'otpExpiresAt'] },
       order: [['createdAt', 'DESC']],
     });
+  }
+
+  /**
+   * Authenticate user login
+   */
+  static async authenticateUser(email: string, password: string): Promise<{ user: IUser; tokens: TokenPair }> {
+    // Find user by email with password included for verification
+    const user = await User.findOne({
+      where: { email },
+      attributes: { exclude: ['otp', 'otpExpiresAt'] }, // Include password for verification
+    });
+
+    if (!user) {
+      throw new Error('Invalid email or password');
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      throw new Error('Account is not activated. Please verify your email first.');
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new Error('Invalid email or password');
+    }
+
+    // Generate tokens
+    const tokens = JWTUtils.generateTokenPair(user);
+
+    // Return user data without password and tokens
+    const userData = user.toJSON() as IUser;
+    delete (userData as any).password; // Remove password from response
+
+    return {
+      user: userData,
+      tokens,
+    };
+  }
+
+  /**
+   * Refresh access token using refresh token
+   */
+  static async refreshAccessToken(refreshToken: string): Promise<{ user: IUser; tokens: TokenPair }> {
+    try {
+      // Verify refresh token
+      const decoded = JWTUtils.verifyRefreshToken(refreshToken);
+
+      // Find user by ID
+      const user = await User.findByPk(decoded.userId, {
+        attributes: { exclude: ['password', 'otp', 'otpExpiresAt'] },
+      });
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Check if user is still active
+      if (!user.isActive) {
+        throw new Error('Account is deactivated');
+      }
+
+      // Generate new token pair
+      const tokens = JWTUtils.generateTokenPair(user);
+
+      return {
+        user: user.toJSON() as IUser,
+        tokens,
+      };
+    } catch (error) {
+      throw new Error('Invalid refresh token');
+    }
+  }
+
+  /**
+   * Get user profile from token
+   */
+  static async getUserFromToken(token: string): Promise<IUser> {
+    try {
+      const decoded = JWTUtils.verifyAccessToken(token);
+      
+      const user = await User.findByPk(decoded.userId, {
+        attributes: { exclude: ['password', 'otp', 'otpExpiresAt'] },
+      });
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      if (!user.isActive) {
+        throw new Error('Account is deactivated');
+      }
+
+      return user.toJSON() as IUser;
+    } catch (error) {
+      throw new Error('Invalid token');
+    }
   }
 } 
