@@ -14,6 +14,7 @@ import {
 } from '@/controllers/user.controller';
 import { validate } from '@/middlewares/validator';
 import { USER_ROUTES } from '@/constants';
+import { authenticateToken, requireAdmin, requireStaff } from '@/middlewares/auth';
 
 const router = Router();
 
@@ -59,6 +60,8 @@ const validateChangePassword = [
 // GET /api/v1/users - Get all users
 router.get(
   USER_ROUTES.GET_ALL,
+  authenticateToken,
+  requireStaff,
   getAllUsers
 );
 
@@ -66,6 +69,8 @@ router.get(
 router.get(
   '/search',
   validate(validateSearch),
+  authenticateToken,
+  requireStaff,
   searchUsers
 );
 
@@ -73,6 +78,8 @@ router.get(
 router.get(
   '/role/:role',
   validate(validateRole),
+  authenticateToken,
+  requireAdmin,
   getUsersByRole
 );
 
@@ -80,18 +87,22 @@ router.get(
 router.get(
   USER_ROUTES.GET_BY_ID,
   validate(validateId),
+  authenticateToken,
+  requireStaff,
   getUserById
 );
 
 // GET /api/v1/users/profile - Get user profile
 router.get(
   USER_ROUTES.GET_PROFILE,
+  authenticateToken,
   getUserProfile
 );
 
 // PUT /api/v1/users/profile - Update user profile
 router.put(
   USER_ROUTES.UPDATE_PROFILE,
+  authenticateToken,
   validate(validateUpdateProfile),
   updateUserProfile
 );
@@ -99,12 +110,14 @@ router.put(
 // PUT /api/v1/users/profile/avatar - Update user avatar
 router.put(
   USER_ROUTES.UPDATE_AVATAR,
+  authenticateToken,
   updateUserAvatar
 );
 
 // PUT /api/v1/users/change-password - Change password
 router.put(
   USER_ROUTES.CHANGE_PASSWORD,
+  authenticateToken,
   validate(validateChangePassword),
   changePassword
 );
@@ -113,6 +126,8 @@ router.put(
 router.delete(
   USER_ROUTES.DELETE,
   validate(validateId),
+  authenticateToken,
+  requireAdmin,
   deleteUser
 );
 
@@ -120,6 +135,8 @@ router.delete(
 router.patch(
   USER_ROUTES.SOFT_DELETE,
   validate(validateId),
+  authenticateToken,
+  requireAdmin,
   softDeleteUser
 );
 
