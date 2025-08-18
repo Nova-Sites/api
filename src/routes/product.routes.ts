@@ -13,6 +13,7 @@ import {
   getProductsByPriceRange,
 } from '@/controllers/product.controller';
 import { PRODUCT_ROUTES } from '@/constants';
+import { authenticateToken, requireStaff, requireAdmin } from '@/middlewares/auth';
 
 const router = Router();
 
@@ -38,15 +39,35 @@ router.get(PRODUCT_ROUTES.GET_BY_ID, getProductById);
 router.get(PRODUCT_ROUTES.GET_BY_SLUG, getProductBySlug);
 
 // POST /api/v1/products
-router.post(PRODUCT_ROUTES.CREATE, createProduct);
+router.post(
+  PRODUCT_ROUTES.CREATE,
+  authenticateToken,
+  requireStaff,
+  createProduct
+);
 
 // PUT /api/v1/products/:id
-router.put(PRODUCT_ROUTES.UPDATE, updateProduct);
+router.put(
+  PRODUCT_ROUTES.UPDATE,
+  authenticateToken,
+  requireStaff,
+  updateProduct
+);
 
 // DELETE /api/v1/products/:id
-router.delete(PRODUCT_ROUTES.DELETE, deleteProduct);
+router.delete(
+  PRODUCT_ROUTES.DELETE,
+  authenticateToken,
+  requireAdmin,
+  deleteProduct
+);
 
 // PATCH /api/v1/products/:id/soft-delete
-router.patch(PRODUCT_ROUTES.SOFT_DELETE, softDeleteProduct);
+router.patch(
+  PRODUCT_ROUTES.SOFT_DELETE,
+  authenticateToken,
+  requireStaff,
+  softDeleteProduct
+);
 
 export default router; 

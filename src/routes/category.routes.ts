@@ -13,6 +13,7 @@ import {
 } from '@/controllers/category.controller';
 import { validate } from '@/middlewares/validator';
 import { CATEGORY_ROUTES } from '@/constants';
+import { authenticateToken, requireStaff, requireAdmin } from '@/middlewares/auth';
 
 const router = Router();
 
@@ -69,6 +70,8 @@ router.get(
 // POST /api/v1/categories - Create new category
 router.post(
   CATEGORY_ROUTES.CREATE, 
+  authenticateToken,
+  requireStaff,
   validate(validateCreateCategory),
   createCategory
 );
@@ -76,6 +79,8 @@ router.post(
 // PUT /api/v1/categories/:id - Update category
 router.put(
   CATEGORY_ROUTES.UPDATE, 
+  authenticateToken,
+  requireStaff,
   validate(validateUpdateCategory),
   updateCategory
 );
@@ -83,6 +88,8 @@ router.put(
 // DELETE /api/v1/categories/:id - Delete category
 router.delete(
   CATEGORY_ROUTES.DELETE, 
+  authenticateToken,
+  requireAdmin,
   validate(validateId),
   deleteCategory
 );
@@ -90,6 +97,8 @@ router.delete(
 // PATCH /api/v1/categories/:id/soft-delete - Soft delete category
 router.patch(
   CATEGORY_ROUTES.SOFT_DELETE, 
+  authenticateToken,
+  requireStaff,
   validate(validateId),
   softDeleteCategory
 );
