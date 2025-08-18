@@ -23,9 +23,9 @@ export const register = asyncHandler(async (req: Request, res: Response): Promis
       res,
       {
         user: userData.user,
-        message: 'Registration successful. Please check your email for OTP verification.',
+        message: MESSAGES.SUCCESS.AUTH.REGISTER_SUCCESS,
       },
-      'Registration successful. Please check your email for OTP verification.',
+      MESSAGES.SUCCESS.AUTH.REGISTER_SUCCESS,
       HTTP_STATUS.CREATED
     );
   } catch (error) {
@@ -33,12 +33,12 @@ export const register = asyncHandler(async (req: Request, res: Response): Promis
       if (error.message.includes('already exists')) {
         sendValidationErrorResponse(res, error.message);
       } else if (error.message.includes('Failed to send OTP')) {
-        sendErrorResponse(res, 'Failed to send verification email. Please try again.', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+        sendErrorResponse(res, MESSAGES.ERROR.AUTH.FAILED_TO_SEND_OTP, HTTP_STATUS.INTERNAL_SERVER_ERROR);
       } else {
         sendErrorResponse(res, error.message, HTTP_STATUS.BAD_REQUEST);
       }
     } else {
-      sendErrorResponse(res, 'Registration failed', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+      sendErrorResponse(res, MESSAGES.ERROR.AUTH.FAILED_TO_REGISTER, HTTP_STATUS.INTERNAL_SERVER_ERROR);
     }
   }
 });
@@ -47,7 +47,7 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response): Promi
   const { email, otp } = req.body;
 
   if (!email || !otp) {
-    return sendValidationErrorResponse(res, 'Email and OTP are required');
+    return sendValidationErrorResponse(res, MESSAGES.ERROR.AUTH.REQUIRED_EMAIL_OTP);
   }
 
   try {
@@ -65,9 +65,9 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response): Promi
           role: user.role,
           createdAt: user.createdAt,
         },
-        message: 'Account verified successfully',
+        message: MESSAGES.SUCCESS.AUTH.VERIFY_OTP_SUCCESS,
       },
-      'Account verified successfully'
+      MESSAGES.SUCCESS.AUTH.VERIFY_OTP_SUCCESS
     );
   } catch (error) {
     if (error instanceof Error) {
@@ -77,7 +77,7 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response): Promi
         sendErrorResponse(res, error.message, HTTP_STATUS.BAD_REQUEST);
       }
     } else {
-      sendErrorResponse(res, 'OTP verification failed', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+      sendErrorResponse(res, MESSAGES.ERROR.AUTH.FAILED_TO_VERIFY_OTP, HTTP_STATUS.INTERNAL_SERVER_ERROR);
     }
   }
 });
@@ -86,7 +86,7 @@ export const resendOTP = asyncHandler(async (req: Request, res: Response): Promi
   const { email } = req.body;
 
   if (!email) {
-    return sendValidationErrorResponse(res, 'Email is required');
+    return sendValidationErrorResponse(res, MESSAGES.ERROR.AUTH.REQUIRED_EMAIL);
   }
 
   try {
@@ -99,21 +99,21 @@ export const resendOTP = asyncHandler(async (req: Request, res: Response): Promi
       res,
       {
         user: userData.user,
-        message: 'OTP resent successfully. Please check your email.',
+        message: MESSAGES.SUCCESS.AUTH.RESEND_OTP_SUCCESS,
       },
-      'OTP resent successfully. Please check your email.'
+      MESSAGES.SUCCESS.AUTH.RESEND_OTP_SUCCESS
     );
   } catch (error) {
     if (error instanceof Error) {
       if (error.message.includes('not found') || error.message.includes('already activated')) {
         sendValidationErrorResponse(res, error.message);
       } else if (error.message.includes('Failed to send OTP')) {
-        sendErrorResponse(res, 'Failed to send verification email. Please try again.', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+        sendErrorResponse(res, MESSAGES.ERROR.AUTH.FAILED_TO_SEND_OTP, HTTP_STATUS.INTERNAL_SERVER_ERROR);
       } else {
         sendErrorResponse(res, error.message, HTTP_STATUS.BAD_REQUEST);
       }
     } else {
-      sendErrorResponse(res, 'Failed to resend OTP', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+      sendErrorResponse(res, MESSAGES.ERROR.AUTH.FAILED_TO_RESEND_OTP, HTTP_STATUS.INTERNAL_SERVER_ERROR);
     }
   }
 });
@@ -122,7 +122,7 @@ export const login = asyncHandler(async (req: Request, res: Response): Promise<v
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return sendValidationErrorResponse(res, 'Email and password are required');
+    return sendValidationErrorResponse(res, MESSAGES.ERROR.AUTH.REQUIRED_EMAIL_PASSWORD);
   }
 
   try {
@@ -153,9 +153,9 @@ export const login = asyncHandler(async (req: Request, res: Response): Promise<v
           refreshToken: result.tokens.refreshToken,
           expiresIn: result.tokens.expiresIn,
         },
-        message: 'Login successful',
+        message: MESSAGES.SUCCESS.LOGIN_SUCCESS,
       },
-      'Login successful'
+      MESSAGES.SUCCESS.LOGIN_SUCCESS
     );
   } catch (error) {
     if (error instanceof Error) {
@@ -167,7 +167,7 @@ export const login = asyncHandler(async (req: Request, res: Response): Promise<v
         sendErrorResponse(res, error.message, HTTP_STATUS.BAD_REQUEST);
       }
     } else {
-      sendErrorResponse(res, 'Login failed', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+      sendErrorResponse(res, MESSAGES.ERROR.INTERNAL_ERROR, HTTP_STATUS.INTERNAL_SERVER_ERROR);
     }
   }
 });
@@ -184,7 +184,7 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response): Pr
   const refreshToken = (req as any).refreshToken || req.body.refreshToken;
 
   if (!refreshToken) {
-    return sendValidationErrorResponse(res, 'Refresh token is required from cookies or request body');
+    return sendValidationErrorResponse(res, MESSAGES.ERROR.AUTH.REQUIRED_REFRESH_TOKEN);
   }
 
   try {
@@ -215,9 +215,9 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response): Pr
           refreshToken: result.tokens.refreshToken,
           expiresIn: result.tokens.expiresIn,
         },
-        message: 'Token refreshed successfully',
+        message: MESSAGES.SUCCESS.AUTH.TOKEN_REFRESHED,
       },
-      'Token refreshed successfully'
+      MESSAGES.SUCCESS.AUTH.TOKEN_REFRESHED
     );
   } catch (error) {
     if (error instanceof Error) {
@@ -227,7 +227,7 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response): Pr
         sendErrorResponse(res, error.message, HTTP_STATUS.BAD_REQUEST);
       }
     } else {
-      sendErrorResponse(res, 'Token refresh failed', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+      sendErrorResponse(res, MESSAGES.ERROR.AUTH.FAILED_TO_REFRESH_TOKEN, HTTP_STATUS.INTERNAL_SERVER_ERROR);
     }
   }
 });
@@ -236,14 +236,14 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response): 
   const { email } = req.body;
 
   if (!email) {
-    return sendValidationErrorResponse(res, 'Email is required');
+    return sendValidationErrorResponse(res, MESSAGES.ERROR.AUTH.REQUIRED_EMAIL);
   }
 
   try {
     // This will be implemented when we add password reset functionality
-    sendSuccessResponse(res, { message: 'Password reset email sent' }, 'Password reset email sent');
+    sendSuccessResponse(res, { message: MESSAGES.SUCCESS.AUTH.PASSWORD_RESET_EMAIL_SENT }, MESSAGES.SUCCESS.AUTH.PASSWORD_RESET_EMAIL_SENT);
   } catch (error) {
-    sendErrorResponse(res, 'Failed to send password reset email', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    sendErrorResponse(res, MESSAGES.ERROR.AUTH.FAILED_TO_SEND_PASSWORD_RESET_EMAIL, HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 });
 
@@ -251,13 +251,13 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response): P
   const { token, newPassword } = req.body;
 
   if (!token || !newPassword) {
-    return sendValidationErrorResponse(res, 'Token and new password are required');
+    return sendValidationErrorResponse(res, MESSAGES.ERROR.AUTH.REQUIRED_TOKEN_NEW_PASSWORD);
   }
 
   try {
     // This will be implemented when we add password reset functionality
-    sendSuccessResponse(res, { message: 'Password reset successful' }, 'Password reset successful');
+    sendSuccessResponse(res, { message: MESSAGES.SUCCESS.AUTH.PASSWORD_RESET_SUCCESS }, MESSAGES.SUCCESS.AUTH.PASSWORD_RESET_SUCCESS);
   } catch (error) {
-    sendErrorResponse(res, 'Password reset failed', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    sendErrorResponse(res, MESSAGES.ERROR.AUTH.FAILED_TO_RESET_PASSWORD, HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }); 

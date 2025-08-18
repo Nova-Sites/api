@@ -37,12 +37,12 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response): 
 export const getProductById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
-    return sendNotFoundResponse(res, 'Product ID is required');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
   }
   
   const product = await ProductService.getProductById(parseInt(id));
   if (!product) {
-    return sendNotFoundResponse(res, 'Product not found');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
   }
   
   // Increment views
@@ -54,12 +54,12 @@ export const getProductById = asyncHandler(async (req: Request, res: Response): 
 export const getProductBySlug = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { slug } = req.params;
   if (!slug) {
-    return sendNotFoundResponse(res, 'Product slug is required');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_SLUG);
   }
   
   const product = await ProductService.getProductBySlug(slug);
   if (!product) {
-    return sendNotFoundResponse(res, 'Product not found');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
   }
   
   sendSuccessResponse(res, product, MESSAGES.SUCCESS.FETCHED);
@@ -82,7 +82,7 @@ export const createProduct = asyncHandler(async (req: Request, res: Response): P
 export const updateProduct = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
-    return sendNotFoundResponse(res, 'Product ID is required');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
   }
   
   const { name, description, image, price, categoryId, isActive } = req.body;
@@ -97,7 +97,7 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response): P
   
   const product = await ProductService.updateProduct(parseInt(id), updateData);
   if (!product) {
-    return sendNotFoundResponse(res, 'Product not found');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
   }
   
   sendSuccessResponse(res, product, MESSAGES.SUCCESS.UPDATED);
@@ -106,12 +106,12 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response): P
 export const deleteProduct = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
-    return sendNotFoundResponse(res, 'Product ID is required');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
   }
   
   const success = await ProductService.deleteProduct(parseInt(id));
   if (!success) {
-    return sendNotFoundResponse(res, 'Product not found');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
   }
   
   sendSuccessResponse(res, null, MESSAGES.SUCCESS.DELETED);
@@ -120,12 +120,12 @@ export const deleteProduct = asyncHandler(async (req: Request, res: Response): P
 export const softDeleteProduct = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
-    return sendNotFoundResponse(res, 'Product ID is required');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
   }
   
   const success = await ProductService.deleteProduct(parseInt(id));
   if (!success) {
-    return sendNotFoundResponse(res, 'Product not found');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
   }
   
   sendSuccessResponse(res, null, MESSAGES.SUCCESS.DELETED);
@@ -142,7 +142,7 @@ export const getPopularProducts = asyncHandler(async (req: Request, res: Respons
 export const getProductsByCategory = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { categoryId } = req.params;
   if (!categoryId) {
-    return sendNotFoundResponse(res, 'Category ID is required');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
   }
   
   const { page, limit, sortBy, sortOrder } = req.query as any;
@@ -170,7 +170,7 @@ export const getProductsByCategory = asyncHandler(async (req: Request, res: Resp
 export const searchProducts = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { search } = req.query;
   if (!search || typeof search !== 'string') {
-    return sendNotFoundResponse(res, 'Search term is required');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_SEARCH);
   }
   
   const { page, limit, sortBy, sortOrder } = req.query as any;
@@ -198,7 +198,7 @@ export const searchProducts = asyncHandler(async (req: Request, res: Response): 
 export const getProductsByPriceRange = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { minPrice, maxPrice } = req.params;
   if (!minPrice || !maxPrice) {
-    return sendNotFoundResponse(res, 'Min and max price are required');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_MIN_MAX_PRICE);
   }
   
   const { page, limit, sortBy, sortOrder } = req.query as any;

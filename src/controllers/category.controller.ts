@@ -12,12 +12,12 @@ export const getAllCategories = asyncHandler(async (_req: Request, res: Response
 export const getCategoryById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
-    return sendNotFoundResponse(res, 'Category ID is required');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_ID);
   }
   
   const category = await CategoryService.getCategoryById(parseInt(id));
   if (!category) {
-    return sendNotFoundResponse(res, 'Category not found');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.CATEGORY_NOT_FOUND);
   }
   
   sendSuccessResponse(res, category, MESSAGES.SUCCESS.FETCHED);
@@ -26,12 +26,12 @@ export const getCategoryById = asyncHandler(async (req: Request, res: Response):
 export const getCategoryBySlug = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { slug } = req.params;
   if (!slug) {
-    return sendNotFoundResponse(res, 'Category slug is required');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_SLUG);
   }
   
   const category = await CategoryService.getCategoryBySlug(slug);
   if (!category) {
-    return sendNotFoundResponse(res, 'Category not found');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.CATEGORY_NOT_FOUND);
   }
   
   sendSuccessResponse(res, category, MESSAGES.SUCCESS.FETCHED);
@@ -52,7 +52,7 @@ export const createCategory = asyncHandler(async (req: Request, res: Response): 
 export const updateCategory = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
-    return sendNotFoundResponse(res, 'Category ID is required');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_ID);
   }
   
   const { name, image, description, isActive } = req.body;
@@ -65,7 +65,7 @@ export const updateCategory = asyncHandler(async (req: Request, res: Response): 
   });
   
   if (!category) {
-    return sendNotFoundResponse(res, 'Category not found');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.CATEGORY_NOT_FOUND);
   }
   
   sendSuccessResponse(res, category, MESSAGES.SUCCESS.UPDATED);
@@ -74,12 +74,12 @@ export const updateCategory = asyncHandler(async (req: Request, res: Response): 
 export const deleteCategory = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
-    return sendNotFoundResponse(res, 'Category ID is required');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_ID);
   }
   
   const success = await CategoryService.deleteCategory(parseInt(id));
   if (!success) {
-    return sendNotFoundResponse(res, 'Category not found');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.CATEGORY_NOT_FOUND);
   }
   
   sendSuccessResponse(res, null, MESSAGES.SUCCESS.DELETED);
@@ -88,12 +88,12 @@ export const deleteCategory = asyncHandler(async (req: Request, res: Response): 
 export const softDeleteCategory = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
-    return sendNotFoundResponse(res, 'Category ID is required');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_ID);
   }
   
   const success = await CategoryService.deleteCategory(parseInt(id));
   if (!success) {
-    return sendNotFoundResponse(res, 'Category not found');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.CATEGORY_NOT_FOUND);
   }
   
   sendSuccessResponse(res, null, MESSAGES.SUCCESS.DELETED);
@@ -102,7 +102,7 @@ export const softDeleteCategory = asyncHandler(async (req: Request, res: Respons
 export const searchCategories = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { search } = req.query;
   if (!search || typeof search !== 'string') {
-    return sendNotFoundResponse(res, 'Search term is required');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_SEARCH);
   }
   
   const categories = await CategoryService.searchCategories(search);

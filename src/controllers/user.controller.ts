@@ -12,12 +12,12 @@ export const getAllUsers = asyncHandler(async (_req: Request, res: Response): Pr
 export const getUserById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
-    return sendValidationErrorResponse(res, 'User ID is required');
+    return sendValidationErrorResponse(res, MESSAGES.ERROR.USER.REQUIRED_ID);
   }
   
   const user = await UserService.getUserById(parseInt(id));
   if (!user) {
-    return sendNotFoundResponse(res, 'User not found');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.USER.USER_NOT_FOUND);
   }
   
   sendSuccessResponse(res, user, MESSAGES.SUCCESS.FETCHED);
@@ -26,7 +26,7 @@ export const getUserById = asyncHandler(async (req: Request, res: Response): Pro
 export const getUserProfile = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
   // This will be implemented when we add authentication middleware
   // For now, return a placeholder response
-  sendSuccessResponse(res, { message: 'User profile endpoint - to be implemented' }, 'User profile endpoint');
+  sendSuccessResponse(res, { message: MESSAGES.SUCCESS.USER.GET_USER_PROFILE_SUCCESS }, MESSAGES.SUCCESS.USER.GET_USER_PROFILE_SUCCESS);
 });
 
 export const updateUserProfile = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
@@ -35,7 +35,7 @@ export const updateUserProfile = asyncHandler(async (_req: Request, res: Respons
   
   try {
     // Placeholder implementation
-    sendSuccessResponse(res, { message: 'Profile update endpoint - to be implemented' }, 'Profile update endpoint');
+    sendSuccessResponse(res, { message: MESSAGES.SUCCESS.USER.UPDATE_USER_PROFILE_SUCCESS }, MESSAGES.SUCCESS.USER.UPDATE_USER_PROFILE_SUCCESS);
   } catch (error) {
     if (error instanceof Error) {
       if (error.message.includes('already exists')) {
@@ -44,26 +44,26 @@ export const updateUserProfile = asyncHandler(async (_req: Request, res: Respons
         sendErrorResponse(res, error.message);
       }
     } else {
-      sendErrorResponse(res, 'Profile update failed');
+      sendErrorResponse(res, MESSAGES.ERROR.USER.PROFILE_UPDATE_FAILED);
     }
   }
 });
 
 export const updateUserAvatar = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
   // This will be implemented when we add file upload functionality
-  sendSuccessResponse(res, { message: 'Avatar update endpoint - to be implemented' }, 'Avatar update endpoint');
+  sendSuccessResponse(res, { message: MESSAGES.SUCCESS.USER.UPDATE_USER_AVATAR_SUCCESS }, MESSAGES.SUCCESS.USER.UPDATE_USER_AVATAR_SUCCESS);
 });
 
 export const changePassword = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { currentPassword, newPassword } = req.body;
   
   if (!currentPassword || !newPassword) {
-    return sendValidationErrorResponse(res, 'Current password and new password are required');
+    return sendValidationErrorResponse(res, MESSAGES.ERROR.USER.REQUIRED_CURRENT_PASSWORD_NEW_PASSWORD);
   }
   
   try {
     // This will be implemented when we add authentication middleware
-    sendSuccessResponse(res, { message: 'Password change endpoint - to be implemented' }, 'Password change endpoint');
+    sendSuccessResponse(res, { message: MESSAGES.SUCCESS.USER.PASSWORD_CHANGE_SUCCESS }, MESSAGES.SUCCESS.USER.PASSWORD_CHANGE_SUCCESS);
   } catch (error) {
     if (error instanceof Error) {
       if (error.message.includes('incorrect')) {
@@ -72,7 +72,7 @@ export const changePassword = asyncHandler(async (req: Request, res: Response): 
         sendErrorResponse(res, error.message);
       }
     } else {
-      sendErrorResponse(res, 'Password change failed');
+      sendErrorResponse(res, MESSAGES.ERROR.USER.PASSWORD_CHANGE_FAILED);
     }
   }
 });
@@ -80,12 +80,12 @@ export const changePassword = asyncHandler(async (req: Request, res: Response): 
 export const deleteUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
-    return sendValidationErrorResponse(res, 'User ID is required');
+    return sendValidationErrorResponse(res, MESSAGES.ERROR.USER.REQUIRED_ID);
   }
   
   const success = await UserService.deleteUser(parseInt(id));
   if (!success) {
-    return sendNotFoundResponse(res, 'User not found');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.USER.USER_NOT_FOUND);
   }
   
   sendSuccessResponse(res, null, MESSAGES.SUCCESS.DELETED);
@@ -94,12 +94,12 @@ export const deleteUser = asyncHandler(async (req: Request, res: Response): Prom
 export const softDeleteUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
-    return sendValidationErrorResponse(res, 'User ID is required');
+    return sendValidationErrorResponse(res, MESSAGES.ERROR.USER.REQUIRED_ID);
   }
   
   const success = await UserService.deleteUser(parseInt(id));
   if (!success) {
-    return sendNotFoundResponse(res, 'User not found');
+    return sendNotFoundResponse(res, MESSAGES.ERROR.USER.USER_NOT_FOUND);
   }
   
   sendSuccessResponse(res, null, MESSAGES.SUCCESS.DELETED);
@@ -108,7 +108,7 @@ export const softDeleteUser = asyncHandler(async (req: Request, res: Response): 
 export const getUsersByRole = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { role } = req.params;
   if (!role) {
-    return sendValidationErrorResponse(res, 'Role is required');
+    return sendValidationErrorResponse(res, MESSAGES.ERROR.USER.REQUIRED_ROLE);
   }
   
   const users = await UserService.getUsersByRole(role);
@@ -118,7 +118,7 @@ export const getUsersByRole = asyncHandler(async (req: Request, res: Response): 
 export const searchUsers = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { search } = req.query;
   if (!search || typeof search !== 'string') {
-    return sendValidationErrorResponse(res, 'Search term is required');
+    return sendValidationErrorResponse(res, MESSAGES.ERROR.USER.REQUIRED_SEARCH);
   }
   
   const users = await UserService.searchUsers(search);
