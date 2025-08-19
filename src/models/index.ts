@@ -12,10 +12,33 @@ const initializeAssociations = () => {
     as: 'products',
   });
 
+  // Category createdBy and updatedBy associations to User
+  Category.belongsTo(User, {
+    foreignKey: 'createdBy',
+    as: 'creator',
+  });
+
+  Category.belongsTo(User, {
+    foreignKey: 'updatedBy',
+    as: 'updater',
+  });
+  
   Product.belongsTo(Category, {
     foreignKey: 'categoryId',
     as: 'category',
   });
+
+  // Product createdBy and updatedBy associations to User
+  Product.belongsTo(User, {
+    foreignKey: 'createdBy',
+    as: 'creator',
+  });
+
+  Product.belongsTo(User, {
+    foreignKey: 'updatedBy',
+    as: 'updater',
+  });
+
 };
 
 // Initialize associations

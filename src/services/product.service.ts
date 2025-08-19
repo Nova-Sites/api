@@ -105,6 +105,7 @@ export class ProductService {
     image: string;
     price: number;
     categoryId: number;
+    createdBy?: number;
   }): Promise<IProduct> {
     const slug = productData.name
       .toLowerCase()
@@ -130,6 +131,7 @@ export class ProductService {
       price?: number;
       categoryId?: number;
       isActive?: boolean;
+      updatedBy?: number;
     }
   ): Promise<IProduct | null> {
     const product = await Product.findByPk(id);
@@ -144,13 +146,13 @@ export class ProductService {
   /**
    * Delete product by ID (soft delete)
    */
-  static async deleteProduct(id: number): Promise<boolean> {
+  static async deleteProduct(id: number, updatedBy?: number): Promise<boolean> {
     const product = await Product.findByPk(id);
     if (!product) {
       return false;
     }
 
-    await product.update({ isActive: false });
+    await product.update({ isActive: false, updatedBy: updatedBy ?? null });
     return true;
   }
 

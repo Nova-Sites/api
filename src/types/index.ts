@@ -8,6 +8,8 @@ export interface ICategory {
   slug: string;
   description?: string;
   isActive: boolean;
+  createdBy?: number | null;
+  updatedBy?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,6 +24,8 @@ export interface IProduct {
   slug: string;
   categoryId: number;
   isActive: boolean;
+  createdBy?: number | null;
+  updatedBy?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -109,4 +113,5 @@ export interface EnvironmentVariables {
   ALLOWED_ORIGINS: string;
   API_VERSION: string;
   API_PREFIX: string;
+  FRONTEND_URL: string;
 } 

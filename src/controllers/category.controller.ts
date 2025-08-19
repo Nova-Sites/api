@@ -3,6 +3,7 @@ import { CategoryService } from '@/services/category.service';
 import { sendSuccessResponse, sendNotFoundResponse } from '@/utils/responseFormatter';
 import { MESSAGES } from '@/constants';
 import { asyncHandler } from '@/middlewares/error';
+import { AuthenticatedRequest } from '@/middlewares/auth';
 
 export const getAllCategories = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
   const categories = await CategoryService.getAllCategories();
@@ -37,32 +38,38 @@ export const getCategoryBySlug = asyncHandler(async (req: Request, res: Response
   sendSuccessResponse(res, category, MESSAGES.SUCCESS.FETCHED);
 });
 
-export const createCategory = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+export const createCategory = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { name, image, description } = req.body;
-  
-  const category = await CategoryService.createCategory({
+
+  const payload: any = {
     name,
     image,
     description,
-  });
+  };
+  if (req.user?.userId !== undefined) {
+    payload.createdBy = req.user.userId;
+  }
+  const category = await CategoryService.createCategory(payload);
   
   sendSuccessResponse(res, category, MESSAGES.SUCCESS.CREATED, 201);
 });
 
-export const updateCategory = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+export const updateCategory = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_ID);
   }
   
   const { name, image, description, isActive } = req.body;
+
+  const updateData: any = {};
+  if (name !== undefined) updateData.name = name;
+  if (image !== undefined) updateData.image = image;
+  if (description !== undefined) updateData.description = description;
+  if (isActive !== undefined) updateData.isActive = isActive;
+  updateData.updatedBy = req.user?.userId;
   
-  const category = await CategoryService.updateCategory(parseInt(id), {
-    name,
-    image,
-    description,
-    isActive,
-  });
+  const category = await CategoryService.updateCategory(parseInt(id), updateData);
   
   if (!category) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.CATEGORY_NOT_FOUND);
@@ -71,13 +78,13 @@ export const updateCategory = asyncHandler(async (req: Request, res: Response): 
   sendSuccessResponse(res, category, MESSAGES.SUCCESS.UPDATED);
 });
 
-export const deleteCategory = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+export const deleteCategory = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_ID);
   }
   
-  const success = await CategoryService.deleteCategory(parseInt(id));
+  const success = await CategoryService.deleteCategory(parseInt(id), req.user?.userId);
   if (!success) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.CATEGORY_NOT_FOUND);
   }
@@ -85,13 +92,13 @@ export const deleteCategory = asyncHandler(async (req: Request, res: Response): 
   sendSuccessResponse(res, null, MESSAGES.SUCCESS.DELETED);
 });
 
-export const softDeleteCategory = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+export const softDeleteCategory = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_ID);
   }
   
-  const success = await CategoryService.deleteCategory(parseInt(id));
+  const success = await CategoryService.deleteCategory(parseInt(id), req.user?.userId);
   if (!success) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.CATEGORY_NOT_FOUND);
   }

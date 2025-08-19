@@ -36,6 +36,7 @@ export class CategoryService {
     name: string;
     image: string;
     description?: string;
+    createdBy?: number;
   }): Promise<ICategory> {
     const slug = categoryData.name
       .toLowerCase()
@@ -59,6 +60,7 @@ export class CategoryService {
       image?: string;
       description?: string;
       isActive?: boolean;
+      updatedBy?: number;
     }
   ): Promise<ICategory | null> {
     const category = await Category.findByPk(id);
@@ -73,13 +75,13 @@ export class CategoryService {
   /**
    * Delete category by ID (soft delete)
    */
-  static async deleteCategory(id: number): Promise<boolean> {
+  static async deleteCategory(id: number, updatedBy?: number): Promise<boolean> {
     const category = await Category.findByPk(id);
     if (!category) {
       return false;
     }
 
-    await category.update({ isActive: false });
+    await category.update({ isActive: false, updatedBy: updatedBy ?? null });
     return true;
   }
 
