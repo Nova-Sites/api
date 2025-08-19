@@ -39,6 +39,17 @@ const initializeAssociations = () => {
     as: 'updater',
   });
 
+  // User createdBy and updatedBy associations to User
+  User.belongsTo(User, {
+    foreignKey: 'createdBy',
+    as: 'creator',
+  });
+  
+  User.belongsTo(User, {
+    foreignKey: 'updatedBy',
+    as: 'updater',
+  });
+
 };
 
 // Initialize associations

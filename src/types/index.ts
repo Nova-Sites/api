@@ -40,6 +40,8 @@ export interface IUser {
   otpExpiresAt?: Date | null;
   image?: string;
   role: string;
+  createdBy?: number | null;
+  updatedBy?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -264,13 +264,13 @@ export class UserService {
   /**
    * Delete user (soft delete)
    */
-  static async deleteUser(id: number): Promise<boolean> {
+  static async deleteUser(id: number, updatedBy?: number): Promise<boolean> {
     const user = await User.findByPk(id);
     if (!user) {
       return false;
     }
 
-    await user.update({ isActive: false });
+    await user.update({ isActive: false, updatedBy: updatedBy ?? null });
     return true;
   }
 
