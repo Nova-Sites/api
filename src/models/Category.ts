@@ -2,10 +2,12 @@ import {
   Model,
   DataTypes,
   HasMany,
+  BelongsTo
 } from 'sequelize';
 import sequelize from '@/config/database';
 import { ICategory } from '@/types';
 import { Product } from './Product';
+import { User } from './User';
 
 export interface CategoryCreationAttributes {
   name: string;
@@ -22,11 +24,15 @@ export class Category extends Model<ICategory, CategoryCreationAttributes> {
   public slug!: string;
   public description?: string;
   public isActive!: boolean;
+  public createdBy!: number | null;
+  public updatedBy!: number | null;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
   public static override associations: {
     products: HasMany<Category, Product>;
+    creator?: BelongsTo<Category, User>;
+    updater?: BelongsTo<Category, User>;
   };
 }
 
@@ -66,6 +72,22 @@ Category.init(
       allowNull: true,
       validate: {
         len: [0, 1000],
+      },
+    },
+    createdBy: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id',
+      },
+    },
+    updatedBy: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id',
       },
     },
     isActive: {

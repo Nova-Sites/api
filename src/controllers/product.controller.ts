@@ -3,6 +3,7 @@ import { ProductService } from '@/services/product.service';
 import { sendSuccessResponse, sendNotFoundResponse } from '@/utils/responseFormatter';
 import { MESSAGES, PAGINATION } from '@/constants';
 import { asyncHandler } from '@/middlewares/error';
+import { AuthenticatedRequest } from '@/middlewares/auth';
 
 export const getAllProducts = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { page, limit, sortBy, sortOrder, categoryId, search, minPrice, maxPrice } = req.query as any;
@@ -65,21 +66,25 @@ export const getProductBySlug = asyncHandler(async (req: Request, res: Response)
   sendSuccessResponse(res, product, MESSAGES.SUCCESS.FETCHED);
 });
 
-export const createProduct = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+export const createProduct = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { name, description, image, price, categoryId } = req.body;
   
-  const product = await ProductService.createProduct({
+  const payload: any = {
     name,
     description,
     image,
     price: parseFloat(price),
     categoryId: parseInt(categoryId),
-  });
+  };
+  if (req.user?.userId !== undefined) {
+    payload.createdBy = req.user.userId;
+  }
+  const product = await ProductService.createProduct(payload);
   
   sendSuccessResponse(res, product, MESSAGES.SUCCESS.CREATED, 201);
 });
 
-export const updateProduct = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+export const updateProduct = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
@@ -94,6 +99,7 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response): P
   if (price !== undefined) updateData.price = parseFloat(price);
   if (categoryId !== undefined) updateData.categoryId = parseInt(categoryId);
   if (isActive !== undefined) updateData.isActive = isActive;
+  updateData.updatedBy = req.user?.userId;
   
   const product = await ProductService.updateProduct(parseInt(id), updateData);
   if (!product) {
@@ -103,13 +109,13 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response): P
   sendSuccessResponse(res, product, MESSAGES.SUCCESS.UPDATED);
 });
 
-export const deleteProduct = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+export const deleteProduct = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
   }
   
-  const success = await ProductService.deleteProduct(parseInt(id));
+  const success = await ProductService.deleteProduct(parseInt(id), req.user?.userId);
   if (!success) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
   }
@@ -117,13 +123,13 @@ export const deleteProduct = asyncHandler(async (req: Request, res: Response): P
   sendSuccessResponse(res, null, MESSAGES.SUCCESS.DELETED);
 });
 
-export const softDeleteProduct = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+export const softDeleteProduct = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
   }
   
-  const success = await ProductService.deleteProduct(parseInt(id));
+  const success = await ProductService.deleteProduct(parseInt(id), req.user?.userId);
   if (!success) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
   }

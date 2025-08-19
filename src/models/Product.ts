@@ -6,6 +6,7 @@ import {
 import sequelize from '@/config/database';
 import { IProduct } from '@/types';
 import { Category } from './Category';
+import { User } from './User';
 
 export interface ProductCreationAttributes {
   name: string;
@@ -15,6 +16,7 @@ export interface ProductCreationAttributes {
   slug: string;
   categoryId: number;
   isActive?: boolean;
+  createdBy?: number;
 }
 
 export class Product extends Model<IProduct, ProductCreationAttributes> {
@@ -27,11 +29,15 @@ export class Product extends Model<IProduct, ProductCreationAttributes> {
   public slug!: string;
   public categoryId!: number;
   public isActive!: boolean;
+  public createdBy!: number | null;
+  public updatedBy!: number | null;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
   public static override associations: {
     category: BelongsTo<Product, Category>;
+    creator?: BelongsTo<Product, User>;
+    updater?: BelongsTo<Product, User>;
   };
 }
 
@@ -94,6 +100,22 @@ Product.init(
       allowNull: false,
       references: {
         model: 'categories',
+        key: 'id',
+      },
+    },
+    createdBy: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id',
+      },
+    },
+    updatedBy: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'users',
         key: 'id',
       },
     },
