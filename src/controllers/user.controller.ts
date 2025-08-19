@@ -3,6 +3,7 @@ import { UserService } from '@/services/user.service';
 import { sendSuccessResponse, sendErrorResponse, sendValidationErrorResponse, sendNotFoundResponse } from '@/utils/responseFormatter';
 import { MESSAGES } from '@/constants';
 import { asyncHandler } from '@/middlewares/error';
+import { AuthenticatedRequest } from '@/middlewares/auth';
 
 export const getAllUsers = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
   const users = await UserService.getAllUsers();
@@ -77,13 +78,13 @@ export const changePassword = asyncHandler(async (req: Request, res: Response): 
   }
 });
 
-export const deleteUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+export const deleteUser = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
     return sendValidationErrorResponse(res, MESSAGES.ERROR.USER.REQUIRED_ID);
   }
   
-  const success = await UserService.deleteUser(parseInt(id));
+  const success = await UserService.deleteUser(parseInt(id), req.user?.userId);
   if (!success) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.USER.USER_NOT_FOUND);
   }
@@ -91,13 +92,13 @@ export const deleteUser = asyncHandler(async (req: Request, res: Response): Prom
   sendSuccessResponse(res, null, MESSAGES.SUCCESS.DELETED);
 });
 
-export const softDeleteUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+export const softDeleteUser = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   if (!id) {
     return sendValidationErrorResponse(res, MESSAGES.ERROR.USER.REQUIRED_ID);
   }
   
-  const success = await UserService.deleteUser(parseInt(id));
+  const success = await UserService.deleteUser(parseInt(id), req.user?.userId);
   if (!success) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.USER.USER_NOT_FOUND);
   }

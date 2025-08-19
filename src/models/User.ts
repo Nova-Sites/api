@@ -1,6 +1,7 @@
 import {
   Model,
   DataTypes,
+  BelongsTo,
 } from 'sequelize';
 import sequelize from '@/config/database';
 import { IUser } from '@/types';
@@ -27,8 +28,15 @@ export class User extends Model<IUser, UserCreationAttributes> {
   public otpExpiresAt?: Date | null;
   public image?: string;
   public role!: string;
+  public createdBy!: number | null;
+  public updatedBy!: number | null;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  public static override associations: {
+    creator?: BelongsTo<User, User>;
+    updater?: BelongsTo<User, User>;
+  };
 }
 
 User.init(
@@ -95,6 +103,22 @@ User.init(
       defaultValue: USER_ROLES.ROLE_USER,
       validate: {
         isIn: [Object.values(USER_ROLES)],
+      },
+    },
+    createdBy: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id',
+      },
+    },
+    updatedBy: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id',
       },
     },
     createdAt: {
