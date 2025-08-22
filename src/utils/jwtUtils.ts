@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { IUser } from '@/types';
-import { JWT_CONSTANTS } from '@/constants';
+import { JWT_CONSTANTS, MESSAGES } from '@/constants';
 
 export interface TokenPayload {
   userId: number;
@@ -84,7 +84,7 @@ export class JWTUtils {
         algorithms: [JWT_CONSTANTS.ALGORITHM as jwt.Algorithm],
       }) as DecodedToken;
     } catch (error) {
-      throw new Error('Invalid or expired access token');
+      throw new Error(MESSAGES.ERROR.AUTH.INVALID_ACCESS_TOKEN);
     }
   }
 
@@ -97,7 +97,7 @@ export class JWTUtils {
         algorithms: [JWT_CONSTANTS.ALGORITHM as jwt.Algorithm],
       }) as DecodedToken;
     } catch (error) {
-      throw new Error('Invalid or expired refresh token');
+      throw new Error(MESSAGES.ERROR.AUTH.INVALID_REFRESH_TOKEN);
     }
   }
 
@@ -173,7 +173,7 @@ export class JWTUtils {
         return {
           isValid: false,
           isExpired: true,
-          error: 'Invalid token format',
+          error: MESSAGES.ERROR.AUTH.INVALID_TOKEN,
         };
       }
 
@@ -187,7 +187,7 @@ export class JWTUtils {
       return {
         isValid: false,
         isExpired: true,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : MESSAGES.ERROR.INTERNAL_ERROR,
       };
     }
   }

@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { User } from '@/models';
-import { USER_ROLES } from '@/constants';
+import { MESSAGES, USER_ROLES } from '@/constants';
 import { Op } from 'sequelize';
 
 export interface UserValidationData {
@@ -24,14 +24,14 @@ export class UserValidationUtils {
     const errors: string[] = [];
 
     if (!username || username.trim().length === 0) {
-      errors.push('Username is required');
+      errors.push(MESSAGES.ERROR.USER.REQUIRED_USERNAME);
     } else {
       if (username.length < 3 || username.length > 50) {
-        errors.push('Username must be between 3 and 50 characters');
+        errors.push(MESSAGES.ERROR.USER.USERNAME_LENGTH);
       }
 
       if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-        errors.push('Username can only contain alphanumeric characters and underscore');
+        errors.push(MESSAGES.ERROR.USER.USERNAME_FORMAT);
       }
     }
 
@@ -48,11 +48,11 @@ export class UserValidationUtils {
     const errors: string[] = [];
 
     if (!email || email.trim().length === 0) {
-      errors.push('Email is required');
+      errors.push(MESSAGES.ERROR.USER.REQUIRED_EMAIL);
     } else {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        errors.push('Invalid email format');
+        errors.push(MESSAGES.ERROR.USER.INVALID_EMAIL);
       }
     }
 
@@ -69,15 +69,15 @@ export class UserValidationUtils {
     const errors: string[] = [];
 
     if (!password || password.length === 0) {
-      errors.push('Password is required');
+      errors.push(MESSAGES.ERROR.USER.REQUIRED_PASSWORD);
     } else {
       if (password.length < 6) {
-        errors.push('Password must be at least 6 characters long');
+        errors.push(MESSAGES.ERROR.USER.PASSWORD_LENGTH);
       }
     }
 
     if (password !== confirmPassword) {
-      errors.push('Passwords do not match');
+      errors.push(MESSAGES.ERROR.USER.PASSWORD_MATCH);
     }
 
     return {
@@ -161,7 +161,7 @@ export class UserValidationUtils {
       };
     } catch (error) {
       console.error('Error checking user existence:', error);
-      throw new Error('Failed to check user existence');
+      throw new Error(MESSAGES.ERROR.USER.FAILED_TO_CHECK_USER_EXISTENCE);
     }
   }
 
@@ -173,7 +173,7 @@ export class UserValidationUtils {
       return await bcrypt.hash(password, saltRounds);
     } catch (error) {
       console.error('Error hashing password:', error);
-      throw new Error('Failed to hash password');
+      throw new Error(MESSAGES.ERROR.USER.FAILED_TO_HASH_PASSWORD);
     }
   }
 
@@ -200,7 +200,7 @@ export class UserValidationUtils {
         return {
           user: null,
           success: false,
-          error: 'User with this username or email already exists'
+          error: MESSAGES.ERROR.USER.USER_ALREADY_EXISTS
         };
       }
 
@@ -229,7 +229,7 @@ export class UserValidationUtils {
       return {
         user: null,
         success: false,
-        error: 'Failed to create user'
+        error: MESSAGES.ERROR.USER.FAILED_TO_CREATE_USER
       };
     }
   }
