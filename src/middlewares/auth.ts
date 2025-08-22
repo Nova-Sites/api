@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { JWTUtils } from '@/utils/jwtUtils';
 import { sendErrorResponse } from '@/utils/responseFormatter';
-import { HTTP_STATUS } from '@/constants';
+import { HTTP_STATUS, MESSAGES, USER_ROLES } from '@/constants';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -28,7 +28,7 @@ export const authenticateToken = async (
     if (!token) {
       return sendErrorResponse(
         res,
-        'Access token is required',
+        MESSAGES.ERROR.AUTH.REQUIRED_ACCESS_TOKEN,
         HTTP_STATUS.UNAUTHORIZED
       );
     }
@@ -48,7 +48,7 @@ export const authenticateToken = async (
   } catch (error) {
     return sendErrorResponse(
       res,
-      'Invalid or expired access token',
+      MESSAGES.ERROR.AUTH.INVALID_ACCESS_TOKEN,
       HTTP_STATUS.UNAUTHORIZED
     );
   }
@@ -62,7 +62,7 @@ export const requireRole = (requiredRoles: string[]) => {
     if (!req.user) {
       return sendErrorResponse(
         res,
-        'Authentication required',
+        MESSAGES.ERROR.AUTH.REQUIRED_AUTHEN,
         HTTP_STATUS.UNAUTHORIZED
       );
     }
@@ -70,7 +70,7 @@ export const requireRole = (requiredRoles: string[]) => {
     if (!requiredRoles.includes(req.user.role)) {
       return sendErrorResponse(
         res,
-        'Insufficient permissions',
+        MESSAGES.ERROR.AUTH.INSUFFICIENT_PERMISSION,
         HTTP_STATUS.FORBIDDEN
       );
     }
@@ -82,17 +82,17 @@ export const requireRole = (requiredRoles: string[]) => {
 /**
  * Middleware to check if user is admin or super admin
  */
-export const requireAdmin = requireRole(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN']);
+export const requireAdmin = requireRole([USER_ROLES.ROLE_ADMIN, USER_ROLES.ROLE_SUPER_ADMIN]);
 
 /**
  * Middleware to check if user is super admin only
  */
-export const requireSuperAdmin = requireRole(['ROLE_SUPER_ADMIN']);
+export const requireSuperAdmin = requireRole([USER_ROLES.ROLE_SUPER_ADMIN]);
 
 /**
  * Middleware to check if user is staff or higher
  */
-export const requireStaff = requireRole(['ROLE_STAFF', 'ROLE_ADMIN', 'ROLE_SUPER_ADMIN']);
+export const requireStaff = requireRole([USER_ROLES.ROLE_STAFF, USER_ROLES.ROLE_ADMIN, USER_ROLES.ROLE_SUPER_ADMIN]);
 
 /**
  * Optional authentication middleware (doesn't fail if no token)

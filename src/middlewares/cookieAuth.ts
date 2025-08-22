@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { MESSAGES } from '@/constants';
 
 export interface CookieRequest extends Request {
   cookies: {
@@ -39,7 +40,7 @@ export const requireCookieAuth = (
   if (!accessToken) {
     res.status(401).json({
       success: false,
-      message: 'Access token required from cookies',
+      message: MESSAGES.ERROR.AUTH.REQUIRED_ACCESS_TOKEN,
       statusCode: 401,
     });
     return;
