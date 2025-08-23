@@ -1,15 +1,11 @@
 import { Request, Response } from 'express';
 import { ProductService } from '@/services/product.service';
-import { UploadService } from '@/services/upload.service';
+
 import { sendSuccessResponse, sendNotFoundResponse, sendErrorResponse, sendValidationErrorResponse } from '@/utils/responseFormatter';
 import { MESSAGES, PAGINATION } from '@/constants';
 import { asyncHandler } from '@/middlewares/error';
-import { AuthenticatedRequest } from '@/middlewares/auth';
-
-// Interface cho uploaded files
-interface UploadedFile extends Express.Multer.File {
-  buffer: Buffer;
-}
+import { uploadImage, deleteImageByUrl } from '@/utils/cloudinary';
+import { AuthenticatedRequest, UploadedFile } from '@/types';
 
 export const getAllProducts = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { page, limit, sortBy, sortOrder, categoryId, search, minPrice, maxPrice } = req.query as any;
@@ -82,7 +78,7 @@ export const createProduct = asyncHandler(async (req: AuthenticatedRequest, res:
 
   try {
     // Upload image to Cloudinary
-    const uploadResult = await UploadService.uploadSingleImage(
+    const uploadResult = await uploadImage(
       file.buffer,
       'products',
       `product_${Date.now()}`
@@ -141,7 +137,7 @@ export const updateProduct = asyncHandler(async (req: AuthenticatedRequest, res:
     let uploadResult: any = null;
     if (file) {
       // Upload new image to Cloudinary
-      uploadResult = await UploadService.uploadSingleImage(
+      uploadResult = await uploadImage(
         file.buffer,
         'products',
         `product_${id}_${Date.now()}`
@@ -157,7 +153,7 @@ export const updateProduct = asyncHandler(async (req: AuthenticatedRequest, res:
       const currentProduct = await ProductService.getProductById(parseInt(id));
       if (currentProduct && currentProduct.image) {
         // Delete old image from Cloudinary
-        await UploadService.deleteImageByUrl(currentProduct.image);
+        await deleteImageByUrl(currentProduct.image);
       }
     }
     

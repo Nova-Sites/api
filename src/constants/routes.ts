@@ -1,9 +1,5 @@
 // Route Constants
 export const ROUTES = {
-  // API Base
-  API_PREFIX: '/api',
-  VERSION: '/v1',
-  
   // Main Resources
   CATEGORIES: '/categories',
   PRODUCTS: '/products',

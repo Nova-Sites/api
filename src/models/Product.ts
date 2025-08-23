@@ -4,20 +4,9 @@ import {
   BelongsTo,
 } from 'sequelize';
 import sequelize from '@/config/database';
-import { IProduct } from '@/types';
+import { IProduct, ProductCreationAttributes } from '@/types';
 import { Category } from './Category';
 import { User } from './User';
-
-export interface ProductCreationAttributes {
-  name: string;
-  description: string;
-  image: string;
-  price: number;
-  slug: string;
-  categoryId: number;
-  isActive?: boolean;
-  createdBy?: number;
-}
 
 export class Product extends Model<IProduct, ProductCreationAttributes> {
   public id!: number;

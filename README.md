@@ -159,8 +159,6 @@ Tất cả routes được định nghĩa trong constants để tránh hard-code
 ```typescript
 // Constants được tổ chức trong src/constants/routes.ts
 export const ROUTES = {
-  API_PREFIX: '/api',
-  VERSION: '/v1',
   CATEGORIES: '/categories',
   PRODUCTS: '/products',
   HEALTH: '/health',

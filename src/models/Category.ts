@@ -5,17 +5,10 @@ import {
   BelongsTo
 } from 'sequelize';
 import sequelize from '@/config/database';
-import { ICategory } from '@/types';
+import { ICategory, CategoryCreationAttributes } from '@/types';
 import { Product } from './Product';
 import { User } from './User';
 
-export interface CategoryCreationAttributes {
-  name: string;
-  image: string;
-  slug: string;
-  description?: string;
-  isActive?: boolean;
-}
 
 export class Category extends Model<ICategory, CategoryCreationAttributes> {
   public id!: number;

@@ -1,16 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { JWTUtils } from '@/utils/jwtUtils';
 import { sendErrorResponse } from '@/utils/responseFormatter';
 import { HTTP_STATUS, MESSAGES, USER_ROLES } from '@/constants';
-
-export interface AuthenticatedRequest extends Request {
-  user?: {
-    userId: number;
-    username: string;
-    email: string;
-    role: string;
-  };
-}
+import { AuthenticatedRequest } from '@/types';
 
 /**
  * Middleware to authenticate JWT access token

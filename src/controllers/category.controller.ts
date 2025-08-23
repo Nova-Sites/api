@@ -1,15 +1,11 @@
 import { Request, Response } from 'express';
 import { CategoryService } from '@/services/category.service';
-import { UploadService } from '@/services/upload.service';
+
 import { sendSuccessResponse, sendNotFoundResponse, sendErrorResponse, sendValidationErrorResponse } from '@/utils/responseFormatter';
 import { MESSAGES } from '@/constants';
 import { asyncHandler } from '@/middlewares/error';
-import { AuthenticatedRequest } from '@/middlewares/auth';
-
-// Interface cho uploaded files
-interface UploadedFile extends Express.Multer.File {
-  buffer: Buffer;
-}
+import { uploadImage, deleteImageByUrl } from '@/utils/cloudinary';
+import { AuthenticatedRequest, UploadedFile } from '@/types';
 
 export const getAllCategories = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
   const categories = await CategoryService.getAllCategories();
@@ -54,7 +50,7 @@ export const createCategory = asyncHandler(async (req: AuthenticatedRequest, res
 
   try {
     // Upload image to Cloudinary
-    const uploadResult = await UploadService.uploadSingleImage(
+    const uploadResult = await uploadImage(
       file.buffer,
       'categories',
       `category_${Date.now()}`
@@ -109,7 +105,7 @@ export const updateCategory = asyncHandler(async (req: AuthenticatedRequest, res
     let uploadResult: any = null;
     if (file) {
       // Upload new image to Cloudinary
-      uploadResult = await UploadService.uploadSingleImage(
+      uploadResult = await uploadImage(
         file.buffer,
         'categories',
         `category_${id}_${Date.now()}`
@@ -125,7 +121,7 @@ export const updateCategory = asyncHandler(async (req: AuthenticatedRequest, res
       const currentCategory = await CategoryService.getCategoryById(parseInt(id));
       if (currentCategory && currentCategory.image) {
         // Delete old image from Cloudinary
-        await UploadService.deleteImageByUrl(currentCategory.image);
+        await deleteImageByUrl(currentCategory.image);
       }
     }
     

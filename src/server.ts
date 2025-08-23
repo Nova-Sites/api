@@ -20,7 +20,6 @@ import '@/models';
 import routes from '@/routes';
 import { errorHandler, notFoundHandler } from '@/middlewares/error';
 import { requestLogger, errorLogger, performanceMonitor } from '@/middlewares/logger';
-import { ROUTES } from '@/constants';
 
 const app = express();
 const server = createServer(app);
@@ -67,7 +66,7 @@ app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
 
 // API Routes with caching
-app.use(`${ROUTES.API_PREFIX}${ROUTES.VERSION}`, routes);
+app.use(`${process.env['API_PREFIX']}${process.env['API_VERSION']}`, routes);
 
 // Socket.IO connection handler
 io.on('connection', (socket) => {
@@ -101,7 +100,7 @@ const startServer = async () => {
 
     server.listen(PORT, () => {
       console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
-      console.log(`📚 API Documentation: http://${HOST}:${PORT}${ROUTES.API_PREFIX}${ROUTES.VERSION}/health`);
+      console.log(`📚 API Documentation: http://${HOST}:${PORT}${process.env['API_PREFIX']}${process.env['API_VERSION']}/health`);
       console.log(`🌍 Environment: ${process.env['NODE_ENV'] || 'development'}`);
       console.log(`🔒 Security: Helmet, CORS enabled`);
       console.log(`⚡ Performance: Monitoring enabled`);

@@ -1,10 +1,11 @@
 import bcrypt from 'bcrypt';
 import { User } from '@/models';
-import { IUser } from '@/types';
+import { IUser, TokenPair } from '@/types';
 import { USER_ROLES, OTP_CONSTANTS } from '@/constants';
 import { EmailService } from './email.service';
 import { UserValidationUtils } from '@/utils/userValidation';
-import { JWTUtils, TokenPair } from '@/utils/jwtUtils';
+import { JWTUtils } from '@/utils/jwtUtils';
+
 import { Op } from 'sequelize';
 
 export class UserService {

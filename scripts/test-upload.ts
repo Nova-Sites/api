@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { uploadImage, uploadAvatar, isCloudinaryConfigured } from '../src/utils/cloudinary';
-import { UploadService } from '../src/services/upload.service';
+import { uploadImage, uploadAvatar, uploadMultipleImages, deleteImageByUrl, isCloudinaryConfigured } from '../src/utils/cloudinary';
 
 // Load environment variables
 import dotenv from 'dotenv';
@@ -39,7 +38,7 @@ async function testUploadSystem() {
 
   try {
     // Test upload single image
-    const uploadResult = await UploadService.uploadSingleImage(
+    const uploadResult = await uploadImage(
       sampleImageBuffer,
       'test',
       `test_image_${Date.now()}`
@@ -53,7 +52,7 @@ async function testUploadSystem() {
       // Test delete image
       console.log('\n3. Testing Image Delete...');
       if (uploadResult.url) {
-        const deleteResult = await UploadService.deleteImageByUrl(uploadResult.url);
+        const deleteResult = await deleteImageByUrl(uploadResult.url);
         if (deleteResult.success) {
           console.log('   ✅ Image delete successful');
         } else {
@@ -71,7 +70,7 @@ async function testUploadSystem() {
   // Test 3: Test avatar upload
   console.log('\n4. Testing Avatar Upload...');
   try {
-    const avatarResult = await UploadService.uploadUserAvatar(sampleImageBuffer, 999);
+    const avatarResult = await uploadAvatar(sampleImageBuffer, 999);
     
     if (avatarResult.success) {
       console.log('   ✅ Avatar upload successful');
@@ -79,7 +78,7 @@ async function testUploadSystem() {
       
       // Clean up test avatar
       if (avatarResult.url) {
-        await UploadService.deleteImageByUrl(avatarResult.url);
+        await deleteImageByUrl(avatarResult.url);
         console.log('   🗑️ Test avatar cleaned up');
       }
     } else {
@@ -92,23 +91,28 @@ async function testUploadSystem() {
   // Test 4: Test multiple upload
   console.log('\n5. Testing Multiple Upload...');
   try {
-    const multipleResult = await UploadService.uploadMultipleImages(
+    const multipleResults = await uploadMultipleImages(
       [sampleImageBuffer, sampleImageBuffer],
       'test',
       `multi_test_${Date.now()}`
     );
 
-    if (multipleResult.success) {
-      console.log(`   ✅ Multiple upload successful: ${multipleResult.successCount}/${multipleResult.totalCount}`);
-      console.log(`   📷 URLs: ${multipleResult.urls.join(', ')}`);
+    const successCount = multipleResults.filter(result => result.success).length;
+    const urls = multipleResults.filter(result => result.success).map(result => result.url!);
+    
+    if (successCount > 0) {
+      console.log(`   ✅ Multiple upload successful: ${successCount}/${multipleResults.length}`);
+      console.log(`   📷 URLs: ${urls.join(', ')}`);
       
       // Clean up test images
-      if (multipleResult.urls.length > 0) {
-        const cleanupResult = await UploadService.deleteMultipleImages(multipleResult.urls);
-        console.log(`   🗑️ Cleanup: ${cleanupResult.successCount}/${cleanupResult.totalCount} images deleted`);
+      if (urls.length > 0) {
+        for (const url of urls) {
+          await deleteImageByUrl(url);
+        }
+        console.log(`   🗑️ Cleanup: ${urls.length} images deleted`);
       }
     } else {
-      console.log(`   ❌ Multiple upload failed: ${multipleResult.errors.join(', ')}`);
+      console.log(`   ❌ Multiple upload failed`);
     }
   } catch (error) {
     console.log(`   ❌ Multiple upload test error: ${error}`);
