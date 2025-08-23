@@ -1,17 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS } from '@/constants';
-
-interface LogData {
-  timestamp: string;
-  method: string;
-  url: string;
-  statusCode: number;
-  responseTime: number;
-  ip: string;
-  userAgent: string;
-  requestBody?: any;
-  error?: string;
-}
+import { LogData } from '@/types';
 
 class Logger {
   private static formatLog(data: LogData): string {

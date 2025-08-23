@@ -1,4 +1,12 @@
+import { SAME_SITE_OPTIONS } from '@/constants';
 import { Request } from 'express';
+import { Options } from 'sequelize';
+
+export interface DatabaseConfig {
+  development: Options;
+  test: Options;
+  production: Options;
+}
 
 // Database Models
 export interface ICategory {
@@ -12,6 +20,14 @@ export interface ICategory {
   updatedBy?: number | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface CategoryCreationAttributes {
+  name: string;
+  image: string;
+  slug: string;
+  description?: string;
+  isActive?: boolean;
 }
 
 export interface IProduct {
@@ -30,6 +46,24 @@ export interface IProduct {
   updatedAt: Date;
 }
 
+export interface ProductCreationAttributes {
+  name: string;
+  description: string;
+  image: string;
+  price: number;
+  slug: string;
+  categoryId: number;
+  isActive?: boolean;
+  createdBy?: number;
+}
+
+export interface ProductFilters {
+  categoryId?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  search?: string;
+}
+
 export interface IUser {
   id: number;
   username: string;
@@ -46,13 +80,52 @@ export interface IUser {
   updatedAt: Date;
 }
 
+export interface UserCreationAttributes {
+  username: string;
+  email: string;
+  password: string;
+  isActive?: boolean;
+  otp?: string;
+  otpExpiresAt?: Date;
+  image?: string;
+  role?: string;
+}
+
 // Request Extensions
 export interface AuthenticatedRequest extends Request {
   user?: {
-    id: number;
+    userId: number;
+    username: string;
     email: string;
     role: string;
   };
+}
+
+// Cookie Request
+export interface CookieRequest extends Request {
+  cookies: {
+    access_token?: string;
+    refresh_token?: string;
+  };
+}
+
+// Request with file
+export interface AppError extends Error {
+  statusCode?: number;
+  isOperational?: boolean;
+}
+
+// Log Data
+export interface LogData {
+  timestamp: string;
+  method: string;
+  url: string;
+  statusCode: number;
+  responseTime: number;
+  ip: string;
+  userAgent: string;
+  requestBody?: any;
+  error?: string;
 }
 
 // API Response Types
@@ -117,3 +190,72 @@ export interface EnvironmentVariables {
   API_PREFIX: string;
   FRONTEND_URL: string;
 } 
+
+// Interface cho uploaded files
+export interface UploadedFile extends Express.Multer.File {
+  buffer: Buffer;
+}
+
+// Interface cho upload options
+export interface CloudinaryUploadOptions {
+  folder?: string;
+  public_id?: string;
+  transformation?: any[];
+  quality?: string | number;
+  format?: string;
+}
+
+// Interface cho upload result
+export interface CloudinaryUploadResult {
+  success: boolean;
+  url?: string;
+  public_id?: string;
+  error?: string;
+}
+
+// Interface cho delete result
+export interface CloudinaryDeleteResult {
+  success: boolean;
+  result?: string;
+  error?: string;
+}
+
+export interface CookieOptions {
+  httpOnly: boolean;
+  secure: boolean;
+  sameSite: typeof SAME_SITE_OPTIONS[keyof typeof SAME_SITE_OPTIONS];
+  maxAge: number;
+  path: string;
+  domain?: string;
+}
+
+export interface TokenPayload {
+  userId: number;
+  username: string;
+  email: string;
+  role: string;
+}
+
+export interface TokenPair {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}
+
+export interface DecodedToken extends TokenPayload {
+  iat: number;
+  exp: number;
+}
+
+export interface UserValidationData {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role?: string;
+}
+
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}

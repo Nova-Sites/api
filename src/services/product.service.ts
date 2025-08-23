@@ -1,20 +1,6 @@
 import { Product, Category } from '@/models';
-import { IProduct } from '@/types';
+import { IProduct, PaginationQuery, ProductFilters } from '@/types';
 import { Op } from 'sequelize';
-
-export interface ProductFilters {
-  categoryId?: number;
-  minPrice?: number;
-  maxPrice?: number;
-  search?: string;
-}
-
-export interface ProductPagination {
-  page: number;
-  limit: number;
-  sortBy: string;
-  sortOrder: 'ASC' | 'DESC';
-}
 
 export class ProductService {
   /**
@@ -22,7 +8,7 @@ export class ProductService {
    */
   static async getAllProducts(
     filters: ProductFilters = {},
-    pagination: ProductPagination
+    pagination: PaginationQuery
   ): Promise<{ count: number; products: IProduct[] }> {
     const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC' } = pagination;
     const offset = (page - 1) * limit;
@@ -168,7 +154,7 @@ export class ProductService {
    */
   static async getProductsByCategory(
     categoryId: number,
-    pagination: ProductPagination
+    pagination: PaginationQuery
   ): Promise<{ count: number; products: IProduct[] }> {
     const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC' } = pagination;
     const offset = (page - 1) * limit;
@@ -213,7 +199,7 @@ export class ProductService {
    */
   static async searchProducts(
     searchTerm: string,
-    pagination: ProductPagination
+    pagination: PaginationQuery
   ): Promise<{ count: number; products: IProduct[] }> {
     const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC' } = pagination;
     const offset = (page - 1) * limit;
@@ -247,7 +233,7 @@ export class ProductService {
   static async getProductsByPriceRange(
     minPrice: number,
     maxPrice: number,
-    pagination: ProductPagination
+    pagination: PaginationQuery
   ): Promise<{ count: number; products: IProduct[] }> {
     const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC' } = pagination;
     const offset = (page - 1) * limit;

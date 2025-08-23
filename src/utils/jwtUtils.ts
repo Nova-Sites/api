@@ -1,24 +1,6 @@
 import jwt from 'jsonwebtoken';
-import { IUser } from '@/types';
+import { IUser, TokenPayload, TokenPair, DecodedToken } from '@/types';
 import { JWT_CONSTANTS, MESSAGES } from '@/constants';
-
-export interface TokenPayload {
-  userId: number;
-  username: string;
-  email: string;
-  role: string;
-}
-
-export interface TokenPair {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-}
-
-export interface DecodedToken extends TokenPayload {
-  iat: number;
-  exp: number;
-}
 
 export class JWTUtils {
   private static readonly ACCESS_TOKEN_SECRET = process.env['JWT_ACCESS_SECRET'] || 'your-access-secret-key';

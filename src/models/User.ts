@@ -4,19 +4,8 @@ import {
   BelongsTo,
 } from 'sequelize';
 import sequelize from '@/config/database';
-import { IUser } from '@/types';
+import { IUser, UserCreationAttributes } from '@/types';
 import { USER_ROLES } from '@/constants';
-
-export interface UserCreationAttributes {
-  username: string;
-  email: string;
-  password: string;
-  isActive?: boolean;
-  otp?: string;
-  otpExpiresAt?: Date;
-  image?: string;
-  role?: string;
-}
 
 export class User extends Model<IUser, UserCreationAttributes> {
   public id!: number;

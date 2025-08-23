@@ -1,6 +1,7 @@
 import { v2 as cloudinary, UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
 import streamifier from 'streamifier';
 import dotenv from 'dotenv';
+import { CloudinaryUploadOptions, CloudinaryUploadResult, CloudinaryDeleteResult } from '@/types';
 
 // Load environment variables
 dotenv.config();
@@ -12,31 +13,6 @@ cloudinary.config({
   api_secret: process.env['CLOUDINARY_API_SECRET'] || '',
 });
 
-
-
-// Interface cho upload options
-export interface CloudinaryUploadOptions {
-  folder?: string;
-  public_id?: string;
-  transformation?: any[];
-  quality?: string | number;
-  format?: string;
-}
-
-// Interface cho upload result
-export interface CloudinaryUploadResult {
-  success: boolean;
-  url?: string;
-  public_id?: string;
-  error?: string;
-}
-
-// Interface cho delete result
-export interface CloudinaryDeleteResult {
-  success: boolean;
-  result?: string;
-  error?: string;
-}
 
 /**
  * Upload file buffer lên Cloudinary

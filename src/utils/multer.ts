@@ -2,11 +2,6 @@ import multer from 'multer';
 import { Request } from 'express';
 import { UPLOAD_CONSTANTS, MESSAGES } from '@/constants';
 
-// Interface cho file upload
-export interface UploadedFile extends Express.Multer.File {
-  buffer: Buffer;
-}
-
 // Memory storage vì sẽ upload lên Cloudinary
 const storage = multer.memoryStorage();
 

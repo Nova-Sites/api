@@ -1,14 +1,9 @@
 import dotenv from 'dotenv';
-import { Sequelize, Options } from 'sequelize';
+import { Sequelize } from 'sequelize';
+import { DatabaseConfig } from '@/types';
 
 dotenv.config();
 const env = process.env['NODE_ENV'] || 'development';
-
-interface DatabaseConfig {
-  development: Options;
-  test: Options;
-  production: Options;
-}
 
 const config: DatabaseConfig = {
     development: {

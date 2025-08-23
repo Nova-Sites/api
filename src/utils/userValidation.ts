@@ -2,19 +2,8 @@ import bcrypt from 'bcrypt';
 import { User } from '@/models';
 import { MESSAGES, USER_ROLES } from '@/constants';
 import { Op } from 'sequelize';
+import { UserValidationData, ValidationResult } from '@/types';
 
-export interface UserValidationData {
-  username: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  role?: string;
-}
-
-export interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-}
 
 export class UserValidationUtils {
   /**

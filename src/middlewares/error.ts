@@ -1,11 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS, MESSAGES } from '@/constants';
 import { sendErrorResponse } from '@/utils/responseFormatter';
-
-export interface AppError extends Error {
-  statusCode?: number;
-  isOperational?: boolean;
-}
+import { AppError } from '@/types';
 
 export const createError = (message: string, statusCode: number = HTTP_STATUS.INTERNAL_SERVER_ERROR): AppError => {
   const error = new Error(message) as AppError;

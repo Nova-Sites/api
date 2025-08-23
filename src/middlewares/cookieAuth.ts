@@ -1,12 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { MESSAGES } from '@/constants';
-
-export interface CookieRequest extends Request {
-  cookies: {
-    access_token?: string;
-    refresh_token?: string;
-  };
-}
+import { CookieRequest } from '@/types';
 
 /**
  * Middleware to extract tokens from cookies and add to request

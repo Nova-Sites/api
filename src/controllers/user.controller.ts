@@ -1,15 +1,11 @@
 import { Request, Response } from 'express';
 import { UserService } from '@/services/user.service';
-import { UploadService } from '@/services/upload.service';
+
 import { sendSuccessResponse, sendErrorResponse, sendValidationErrorResponse, sendNotFoundResponse } from '@/utils/responseFormatter';
 import { MESSAGES } from '@/constants';
 import { asyncHandler } from '@/middlewares/error';
-import { AuthenticatedRequest } from '@/middlewares/auth';
-
-// Interface cho uploaded files
-interface UploadedFile extends Express.Multer.File {
-  buffer: Buffer;
-}
+import { uploadAvatar } from '@/utils/cloudinary';
+import { AuthenticatedRequest, UploadedFile } from '@/types';
 
 export const getAllUsers = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
   const users = await UserService.getAllUsers();
@@ -99,7 +95,7 @@ export const updateUserAvatar = asyncHandler(async (req: AuthenticatedRequest, r
     }
 
     // Upload avatar to Cloudinary
-    const uploadResult = await UploadService.uploadUserAvatar(file.buffer, userId);
+    const uploadResult = await uploadAvatar(file.buffer, userId);
     if (!uploadResult.success) {
       return sendErrorResponse(res, uploadResult.error || 'Avatar upload failed');
     }

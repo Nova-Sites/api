@@ -1,4 +1,4 @@
-import { UploadService } from '../src/services/upload.service';
+import { uploadImage, uploadAvatar, uploadMultipleImages, deleteImageByUrl } from '../src/utils/cloudinary';
 import { isCloudinaryConfigured } from '../src/utils/cloudinary';
 
 // Load environment variables
@@ -35,7 +35,7 @@ async function testUploadIntegration() {
   // Test 2: Test Category Image Upload
   console.log('\n2. Testing Category Image Upload...');
   try {
-    const categoryResult = await UploadService.uploadSingleImage(
+    const categoryResult = await uploadImage(
       sampleImageBuffer,
       'categories',
       `test_category_${Date.now()}`
@@ -48,7 +48,7 @@ async function testUploadIntegration() {
 
       // Clean up test category image
       if (categoryResult.url) {
-        const deleteResult = await UploadService.deleteImageByUrl(categoryResult.url);
+        const deleteResult = await deleteImageByUrl(categoryResult.url);
         if (deleteResult.success) {
           console.log('   🗑️ Test category image cleaned up');
         }
@@ -63,7 +63,7 @@ async function testUploadIntegration() {
   // Test 3: Test Product Image Upload
   console.log('\n3. Testing Product Image Upload...');
   try {
-    const productResult = await UploadService.uploadSingleImage(
+          const productResult = await uploadImage(
       sampleImageBuffer,
       'products',
       `test_product_${Date.now()}`
@@ -76,7 +76,7 @@ async function testUploadIntegration() {
 
       // Clean up test product image
       if (productResult.url) {
-        const deleteResult = await UploadService.deleteImageByUrl(productResult.url);
+        const deleteResult = await deleteImageByUrl(productResult.url);
         if (deleteResult.success) {
           console.log('   🗑️ Test product image cleaned up');
         }
@@ -91,7 +91,7 @@ async function testUploadIntegration() {
   // Test 4: Test User Avatar Upload
   console.log('\n4. Testing User Avatar Upload...');
   try {
-    const avatarResult = await UploadService.uploadUserAvatar(sampleImageBuffer, 999);
+          const avatarResult = await uploadAvatar(sampleImageBuffer, 999);
     
     if (avatarResult.success) {
       console.log('   ✅ User avatar upload successful');
@@ -99,7 +99,7 @@ async function testUploadIntegration() {
       
       // Clean up test avatar
       if (avatarResult.url) {
-        const deleteResult = await UploadService.deleteImageByUrl(avatarResult.url);
+        const deleteResult = await deleteImageByUrl(avatarResult.url);
         if (deleteResult.success) {
           console.log('   🗑️ Test avatar cleaned up');
         }
@@ -114,23 +114,28 @@ async function testUploadIntegration() {
   // Test 5: Test Multiple Images Upload
   console.log('\n5. Testing Multiple Images Upload...');
   try {
-    const multipleResult = await UploadService.uploadMultipleImages(
+          const multipleResults = await uploadMultipleImages(
       [sampleImageBuffer, sampleImageBuffer],
       'test'
     );
 
-    if (multipleResult.success) {
-      console.log(`   ✅ Multiple upload successful: ${multipleResult.successCount}/${multipleResult.totalCount}`);
-      console.log(`   📷 URLs: ${multipleResult.urls.join(', ')}`);
+          const successCount = multipleResults.filter(result => result.success).length;
+      const urls = multipleResults.filter(result => result.success).map(result => result.url!);
       
-      // Clean up test images
-      if (multipleResult.urls.length > 0) {
-        const cleanupResult = await UploadService.deleteMultipleImages(multipleResult.urls);
-        console.log(`   🗑️ Cleanup: ${cleanupResult.successCount}/${cleanupResult.totalCount} images deleted`);
+      if (successCount > 0) {
+        console.log(`   ✅ Multiple upload successful: ${successCount}/${multipleResults.length}`);
+        console.log(`   📷 URLs: ${urls.join(', ')}`);
+        
+        // Clean up test images
+        if (urls.length > 0) {
+          for (const url of urls) {
+            await deleteImageByUrl(url);
+          }
+          console.log(`   🗑️ Cleanup: ${urls.length} images deleted`);
+        }
+      } else {
+        console.log(`   ❌ Multiple upload failed`);
       }
-    } else {
-      console.log(`   ❌ Multiple upload failed: ${multipleResult.errors.join(', ')}`);
-    }
   } catch (error) {
     console.log(`   ❌ Multiple upload test error: ${error}`);
   }
