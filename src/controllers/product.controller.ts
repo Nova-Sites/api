@@ -1,9 +1,15 @@
 import { Request, Response } from 'express';
 import { ProductService } from '@/services/product.service';
-import { sendSuccessResponse, sendNotFoundResponse } from '@/utils/responseFormatter';
+import { UploadService } from '@/services/upload.service';
+import { sendSuccessResponse, sendNotFoundResponse, sendErrorResponse, sendValidationErrorResponse } from '@/utils/responseFormatter';
 import { MESSAGES, PAGINATION } from '@/constants';
 import { asyncHandler } from '@/middlewares/error';
 import { AuthenticatedRequest } from '@/middlewares/auth';
+
+// Interface cho uploaded files
+interface UploadedFile extends Express.Multer.File {
+  buffer: Buffer;
+}
 
 export const getAllProducts = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { page, limit, sortBy, sortOrder, categoryId, search, minPrice, maxPrice } = req.query as any;
@@ -67,21 +73,50 @@ export const getProductBySlug = asyncHandler(async (req: Request, res: Response)
 });
 
 export const createProduct = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  const { name, description, image, price, categoryId } = req.body;
-  
-  const payload: any = {
-    name,
-    description,
-    image,
-    price: parseFloat(price),
-    categoryId: parseInt(categoryId),
-  };
-  if (req.user?.userId !== undefined) {
-    payload.createdBy = req.user.userId;
+  const { name, description, price, categoryId } = req.body;
+  const file = req.file as UploadedFile;
+
+  if (!file) {
+    return sendValidationErrorResponse(res, MESSAGES.ERROR.UPLOAD.NO_FILE_UPLOADED);
   }
-  const product = await ProductService.createProduct(payload);
-  
-  sendSuccessResponse(res, product, MESSAGES.SUCCESS.CREATED, 201);
+
+  try {
+    // Upload image to Cloudinary
+    const uploadResult = await UploadService.uploadSingleImage(
+      file.buffer,
+      'products',
+      `product_${Date.now()}`
+    );
+
+    if (!uploadResult.success) {
+      return sendErrorResponse(res, uploadResult.error || 'Image upload failed');
+    }
+
+    const payload: any = {
+      name,
+      description,
+      image: uploadResult.url,
+      price: parseFloat(price),
+      categoryId: parseInt(categoryId),
+    };
+    if (req.user?.userId !== undefined) {
+      payload.createdBy = req.user.userId;
+    }
+    
+    const product = await ProductService.createProduct(payload);
+    
+    sendSuccessResponse(res, {
+      product,
+      imageUrl: uploadResult.url,
+      public_id: uploadResult.public_id,
+    }, MESSAGES.SUCCESS.CREATED, 201);
+  } catch (error) {
+    if (error instanceof Error) {
+      sendErrorResponse(res, error.message);
+    } else {
+      sendErrorResponse(res, MESSAGES.ERROR.INTERNAL_ERROR);
+    }
+  }
 });
 
 export const updateProduct = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -90,23 +125,61 @@ export const updateProduct = asyncHandler(async (req: AuthenticatedRequest, res:
     return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
   }
   
-  const { name, description, image, price, categoryId, isActive } = req.body;
-  
-  const updateData: any = {};
-  if (name !== undefined) updateData.name = name;
-  if (description !== undefined) updateData.description = description;
-  if (image !== undefined) updateData.image = image;
-  if (price !== undefined) updateData.price = parseFloat(price);
-  if (categoryId !== undefined) updateData.categoryId = parseInt(categoryId);
-  if (isActive !== undefined) updateData.isActive = isActive;
-  updateData.updatedBy = req.user?.userId;
-  
-  const product = await ProductService.updateProduct(parseInt(id), updateData);
-  if (!product) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
+  const { name, description, price, categoryId, isActive } = req.body;
+  const file = req.file as UploadedFile;
+
+  try {
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (price !== undefined) updateData.price = parseFloat(price);
+    if (categoryId !== undefined) updateData.categoryId = parseInt(categoryId);
+    if (isActive !== undefined) updateData.isActive = isActive;
+    updateData.updatedBy = req.user?.userId;
+
+    // If new image is uploaded
+    let uploadResult: any = null;
+    if (file) {
+      // Upload new image to Cloudinary
+      uploadResult = await UploadService.uploadSingleImage(
+        file.buffer,
+        'products',
+        `product_${id}_${Date.now()}`
+      );
+
+      if (!uploadResult.success) {
+        return sendErrorResponse(res, uploadResult.error || 'Image upload failed');
+      }
+
+      updateData.image = uploadResult.url;
+      
+      // Get current product to delete old image
+      const currentProduct = await ProductService.getProductById(parseInt(id));
+      if (currentProduct && currentProduct.image) {
+        // Delete old image from Cloudinary
+        await UploadService.deleteImageByUrl(currentProduct.image);
+      }
+    }
+    
+    const product = await ProductService.updateProduct(parseInt(id), updateData);
+    if (!product) {
+      return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
+    }
+    
+    const responseData: any = { product };
+    if (file && uploadResult && updateData.image) {
+      responseData.imageUrl = updateData.image;
+      responseData.public_id = uploadResult.public_id;
+    }
+    
+    sendSuccessResponse(res, responseData, MESSAGES.SUCCESS.UPDATED);
+  } catch (error) {
+    if (error instanceof Error) {
+      sendErrorResponse(res, error.message);
+    } else {
+      sendErrorResponse(res, MESSAGES.ERROR.INTERNAL_ERROR);
+    }
   }
-  
-  sendSuccessResponse(res, product, MESSAGES.SUCCESS.UPDATED);
 });
 
 export const deleteProduct = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {

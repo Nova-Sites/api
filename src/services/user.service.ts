@@ -199,69 +199,6 @@ export class UserService {
   }
 
   /**
-   * Update user profile
-   */
-  static async updateUserProfile(
-    userId: number,
-    updateData: {
-      username?: string;
-      email?: string;
-      image?: string;
-    }
-  ): Promise<IUser | null> {
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return null;
-    }
-
-    // Check if new email already exists (if email is being updated)
-    if (updateData.email && updateData.email !== user.email) {
-      const emailExists = await this.isEmailExists(updateData.email);
-      if (emailExists) {
-        throw new Error('Email already exists');
-      }
-    }
-
-    // Check if new username already exists (if username is being updated)
-    if (updateData.username && updateData.username !== user.username) {
-      const usernameExists = await this.isUsernameExists(updateData.username);
-      if (usernameExists) {
-        throw new Error('Username already exists');
-      }
-    }
-
-    await user.update(updateData);
-    return user.toJSON() as IUser;
-  }
-
-  /**
-   * Change password
-   */
-  static async changePassword(
-    userId: number,
-    currentPassword: string,
-    newPassword: string
-  ): Promise<boolean> {
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return false;
-    }
-
-    // Verify current password
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
-    if (!isCurrentPasswordValid) {
-      throw new Error('Current password is incorrect');
-    }
-
-    // Hash new password using utility
-    const hashedNewPassword = await UserValidationUtils.hashPassword(newPassword);
-
-    // Update password
-    await user.update({ password: hashedNewPassword });
-    return true;
-  }
-
-  /**
    * Delete user (soft delete)
    */
   static async deleteUser(id: number, updatedBy?: number): Promise<boolean> {
@@ -397,5 +334,111 @@ export class UserService {
     } catch (error) {
       throw new Error('Invalid token');
     }
+  }
+
+  /**
+   * Get user profile by user ID
+   */
+  static async getUserProfile(userId: number): Promise<IUser | null> {
+    const user = await User.findByPk(userId, {
+      attributes: { exclude: ['password', 'otp', 'otpExpiresAt'] },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    if (!user.isActive) {
+      throw new Error('Account is deactivated');
+    }
+
+    return user.toJSON() as IUser;
+  }
+
+  /**
+   * Update user profile
+   */
+  static async updateUserProfile(
+    userId: number,
+    updateData: {
+      username?: string;
+      email?: string;
+      image?: string;
+    }
+  ): Promise<IUser | null> {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return null;
+    }
+
+    // Check if new email already exists (if email is being updated)
+    if (updateData.email && updateData.email !== user.email) {
+      const emailExists = await this.isEmailExists(updateData.email);
+      if (emailExists) {
+        throw new Error('Email already exists');
+      }
+    }
+
+    // Check if new username already exists (if username is being updated)
+    if (updateData.username && updateData.username !== user.username) {
+      const usernameExists = await this.isUsernameExists(updateData.username);
+      if (usernameExists) {
+        throw new Error('Username already exists');
+      }
+    }
+
+    await user.update(updateData);
+    return user.toJSON() as IUser;
+  }
+
+  /**
+   * Update user avatar
+   */
+  static async updateUserAvatar(
+    userId: number,
+    imageUrl: string
+  ): Promise<IUser | null> {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return null;
+    }
+
+    if (!user.isActive) {
+      throw new Error('Account is deactivated');
+    }
+
+    await user.update({ image: imageUrl });
+    return user.toJSON() as IUser;
+  }
+
+  /**
+   * Change password
+   */
+  static async changePassword(
+    userId: number,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<boolean> {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return false;
+    }
+
+    if (!user.isActive) {
+      throw new Error('Account is deactivated');
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isCurrentPasswordValid) {
+      throw new Error('Current password is incorrect');
+    }
+
+    // Hash new password using utility
+    const hashedNewPassword = await UserValidationUtils.hashPassword(newPassword);
+
+    // Update password
+    await user.update({ password: hashedNewPassword });
+    return true;
   }
 } 
