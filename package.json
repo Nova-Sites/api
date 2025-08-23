@@ -19,6 +19,9 @@
     "create:user": "ts-node scripts/create-user.ts",
     "test:login": "ts-node scripts/test-login.ts",
     "test:cookies": "ts-node scripts/test-cookies.ts",
+    "test:upload": "ts-node scripts/test-upload.ts",
+    "test:upload-integration": "ts-node scripts/test-upload-integration.ts",
+    "test:cloudinary-config": "ts-node scripts/test-cloudinary-config.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "test": "jest",
@@ -50,7 +53,8 @@
     "nodemailer": "^6.9.7",
     "sequelize": "^6.35.2",
     "slugify": "^1.6.6",
-    "socket.io": "^4.7.4"
+    "socket.io": "^4.7.4",
+    "streamifier": "^0.1.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -63,6 +67,7 @@
     "@types/multer": "^1.4.11",
     "@types/node": "^20.19.9",
     "@types/nodemailer": "^6.4.14",
+    "@types/streamifier": "^0.1.2",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "eslint": "^8.56.0",

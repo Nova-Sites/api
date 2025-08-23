@@ -62,7 +62,7 @@ export const requireRole = (requiredRoles: string[]) => {
     if (!req.user) {
       return sendErrorResponse(
         res,
-        MESSAGES.ERROR.AUTH.REQUIRED_AUTHEN,
+        MESSAGES.ERROR.AUTH.REQUIRED_AUTH,
         HTTP_STATUS.UNAUTHORIZED
       );
     }

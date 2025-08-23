@@ -52,6 +52,15 @@ export const MESSAGES = {
       GET_PRODUCT_BY_ID_SUCCESS: 'Product fetched successfully',
       GET_PRODUCT_BY_SLUG_SUCCESS: 'Product fetched successfully',
       CREATE_PRODUCT_SUCCESS: 'Product created successfully',
+    },
+    UPLOAD: {
+      SINGLE_IMAGE_SUCCESS: 'Image uploaded successfully',
+      MULTIPLE_IMAGES_SUCCESS: 'Images uploaded successfully',
+      AVATAR_UPLOAD_SUCCESS: 'Avatar uploaded successfully',
+      PRODUCT_IMAGE_SUCCESS: 'Product image uploaded successfully',
+      PRODUCT_IMAGES_SUCCESS: 'Product images uploaded successfully',
+      IMAGE_DELETED_SUCCESS: 'Image deleted successfully',
+      IMAGES_DELETED_SUCCESS: 'Images deleted successfully',
     }
   },
   ERROR: {
@@ -74,7 +83,7 @@ export const MESSAGES = {
       REQUIRED_REFRESH_TOKEN: 'Refresh token is required from cookies or request body',
       FAILED_TO_REFRESH_TOKEN: 'Token refresh failed',
       REQUIRED_ACCESS_TOKEN: 'Access token is required',
-      REQUIRED_AUTHEN: 'Authentication required',
+      REQUIRED_AUTH: 'Authentication required',
       INSUFFICIENT_PERMISSION: 'Insufficient permissions',
       INVALID_ACCESS_TOKEN: 'Invalid or expired access token',
       INVALID_REFRESH_TOKEN: 'Invalid or expired refresh token',
@@ -126,6 +135,18 @@ export const MESSAGES = {
       PASSWORD_CHANGE_FAILED: 'Password change failed',
       REQUIRED_MIN_MAX_PRICE: 'Min and max price are required',
       REQUIRED_SLUG: 'Slug is required',
+    },
+    UPLOAD: {
+      NO_FILE_UPLOADED: 'No file uploaded',
+      NO_FILES_UPLOADED: 'No files uploaded',
+      UPLOAD_FAILED: 'Upload failed',
+      DELETE_FAILED: 'Delete failed',
+      CLOUDINARY_NOT_CONFIGURED: 'Cloudinary is not configured properly',
+      REQUIRED_PRODUCT_ID: 'Product ID is required',
+      REQUIRED_IMAGE_URL: 'Image URL is required',
+      REQUIRED_PUBLIC_ID: 'Public ID is required',
+      REQUIRED_IMAGE_URLS: 'Image URLs array is required',
+      INVALID_IMAGE_URLS: 'All image URLs must be valid strings',
     }
   },
 } as const;

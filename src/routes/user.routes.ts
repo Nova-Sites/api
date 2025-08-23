@@ -15,6 +15,7 @@ import {
 import { validate } from '@/middlewares/validator';
 import { USER_ROUTES } from '@/constants';
 import { authenticateToken, requireAdmin, requireStaff } from '@/middlewares/auth';
+import { uploadSingleWithError } from '@/utils/multer';
 
 const router = Router();
 
@@ -111,6 +112,7 @@ router.put(
 router.put(
   USER_ROUTES.UPDATE_AVATAR,
   authenticateToken,
+  uploadSingleWithError('avatar'),
   updateUserAvatar
 );
 

@@ -14,6 +14,7 @@ import {
 import { validate } from '@/middlewares/validator';
 import { CATEGORY_ROUTES } from '@/constants';
 import { authenticateToken, requireStaff, requireAdmin } from '@/middlewares/auth';
+import { uploadSingleWithError } from '@/utils/multer';
 
 const router = Router();
 
@@ -23,13 +24,11 @@ const validateSlug = [param('slug').notEmpty().withMessage('Slug is required')];
 const validateSearch = [query('search').notEmpty().isLength({ min: 2, max: 100 }).withMessage('Search term must be between 2 and 100 characters')];
 const validateCreateCategory = [
   body('name').notEmpty().isLength({ min: 2, max: 255 }).withMessage('Name must be between 2 and 255 characters'),
-  body('image').notEmpty().isURL().withMessage('Image must be a valid URL'),
   body('description').optional().isLength({ max: 1000 }).withMessage('Description must not exceed 1000 characters'),
 ];
 const validateUpdateCategory = [
   param('id').isInt({ min: 1 }).withMessage('ID must be a positive integer'),
   body('name').optional().isLength({ min: 2, max: 255 }).withMessage('Name must be between 2 and 255 characters'),
-  body('image').optional().isURL().withMessage('Image must be a valid URL'),
   body('description').optional().isLength({ max: 1000 }).withMessage('Description must not exceed 1000 characters'),
   body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
 ];
@@ -72,6 +71,7 @@ router.post(
   CATEGORY_ROUTES.CREATE, 
   authenticateToken,
   requireStaff,
+  uploadSingleWithError('image'),
   validate(validateCreateCategory),
   createCategory
 );
@@ -81,6 +81,7 @@ router.put(
   CATEGORY_ROUTES.UPDATE, 
   authenticateToken,
   requireStaff,
+  uploadSingleWithError('image'),
   validate(validateUpdateCategory),
   updateCategory
 );
