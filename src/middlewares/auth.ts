@@ -14,6 +14,7 @@ export const authenticateToken = async (
 ): Promise<void> => {
   try {
     // Get token from Authorization header
+    console.log('req.headers', req.headers);
     const authHeader = req.headers.authorization;
     const token = JWTUtils.extractTokenFromHeader(authHeader);
 

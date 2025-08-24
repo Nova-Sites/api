@@ -84,6 +84,13 @@ router.get(
   getUsersByRole
 );
 
+// GET /api/v1/users/profile - Get user profile
+router.get(
+  USER_ROUTES.GET_PROFILE,
+  authenticateToken,
+  getUserProfile
+);
+
 // GET /api/v1/users/:id - Get user by ID
 router.get(
   USER_ROUTES.GET_BY_ID,
@@ -91,13 +98,6 @@ router.get(
   authenticateToken,
   requireStaff,
   getUserById
-);
-
-// GET /api/v1/users/profile - Get user profile
-router.get(
-  USER_ROUTES.GET_PROFILE,
-  authenticateToken,
-  getUserProfile
 );
 
 // PUT /api/v1/users/profile - Update user profile
