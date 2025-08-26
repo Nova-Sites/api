@@ -13,10 +13,12 @@ export const authenticateToken = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // Get token from Authorization header
-    console.log('req.headers', req.headers);
+    console.log('req.cookies', req.cookies);
     const authHeader = req.headers.authorization;
-    const token = JWTUtils.extractTokenFromHeader(authHeader);
+    let token = JWTUtils.extractTokenFromHeader(authHeader);
+    if (!token && (req as any).cookies?.access_token) {
+      token = (req as any).cookies.access_token;
+    }
 
     if (!token) {
       return sendErrorResponse(
