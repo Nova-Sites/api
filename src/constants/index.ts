@@ -214,7 +214,7 @@ export const COOKIE_CONSTANTS = {
   ACCESS_TOKEN_COOKIE_NAME: 'access_token',
   REFRESH_TOKEN_COOKIE_NAME: 'refresh_token',
   ACCESS_TOKEN_COOKIE_PATH: '/',
-  REFRESH_TOKEN_COOKIE_PATH: '/api/v1/auth/refresh-token',
+  REFRESH_TOKEN_COOKIE_PATH: `${process.env['API_PREFIX']}${process.env['API_VERSION']}/auth/refresh-token`,
 } as const;
 
 // SameSite Options
