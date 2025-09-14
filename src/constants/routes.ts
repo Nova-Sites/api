@@ -3,6 +3,7 @@ export const ROUTES = {
   // Main Resources
   CATEGORIES: '/categories',
   PRODUCTS: '/products',
+  TECH_STACKS: '/tech-stacks',
   AUTH: '/auth',
   USERS: '/users',
   UPLOAD: '/upload',
@@ -34,6 +35,7 @@ export const PRODUCT_ROUTES = {
   POPULAR: '/popular',
   SEARCH: '/search',
   BY_CATEGORY: '/category/:categoryId',
+  BY_TECH_STACK: '/tech-stack/:techStackId',
   BY_PRICE_RANGE: '/price-range/:minPrice/:maxPrice',
   CREATE: '/',
   UPDATE: '/:id',
@@ -52,6 +54,19 @@ export const AUTH_ROUTES = {
   REFRESH_TOKEN: '/refresh-token',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
+} as const;
+
+// Tech Stack Route Paths
+export const TECH_STACK_ROUTES = {
+  BASE: '/',
+  GET_ALL: '/',
+  GET_BY_ID: '/:id',
+  GET_BY_SLUG: '/slug/:slug',
+  SEARCH: '/search',
+  WITH_PRODUCT_COUNT: '/with-product-count',
+  CREATE: '/',
+  UPDATE: '/:id',
+  DELETE: '/:id',
 } as const;
 
 // User Route Paths
@@ -107,6 +122,18 @@ export const API_PATHS = {
     REFRESH_TOKEN: '/api/v1/auth/refresh-token',
     FORGOT_PASSWORD: '/api/v1/auth/forgot-password',
     RESET_PASSWORD: '/api/v1/auth/reset-password',
+  },
+  
+  // Tech Stacks
+  TECH_STACKS: {
+    GET_ALL: '/api/v1/tech-stacks',
+    GET_BY_ID: '/api/v1/tech-stacks/:id',
+    GET_BY_SLUG: '/api/v1/tech-stacks/slug/:slug',
+    SEARCH: '/api/v1/tech-stacks/search',
+    WITH_PRODUCT_COUNT: '/api/v1/tech-stacks/with-product-count',
+    CREATE: '/api/v1/tech-stacks',
+    UPDATE: '/api/v1/tech-stacks/:id',
+    DELETE: '/api/v1/tech-stacks/:id',
   },
   
   // Users

@@ -30,11 +30,28 @@ export interface CategoryCreationAttributes {
   isActive?: boolean;
 }
 
+export interface IProductImage {
+  id: number;
+  productId: number;
+  url: string;
+  sortOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProductImageCreationAttributes {
+  productId: number;
+  url: string;
+  sortOrder?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface IProduct {
   id: number;
   name: string;
   description: string;
-  image: string;
+  image: string; // Main image (backward compatibility)
   price: number;
   views: number;
   slug: string;
@@ -44,24 +61,49 @@ export interface IProduct {
   updatedBy?: number | null;
   createdAt: Date;
   updatedAt: Date;
+  // Relations
+  images?: IProductImage[];
+  techStacks?: ITechStack[];
 }
 
 export interface ProductCreationAttributes {
   name: string;
   description: string;
-  image: string;
+  image: string; // Main image
+  images?: string[]; // Additional images URLs
   price: number;
   slug: string;
   categoryId: number;
+  techStackIds?: number[]; // Tech stack IDs
   isActive?: boolean;
   createdBy?: number;
 }
 
 export interface ProductFilters {
   categoryId?: number;
+  techStackIds?: number[];
   minPrice?: number;
   maxPrice?: number;
   search?: string;
+}
+
+export interface ITechStack {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  iconUrl?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TechStackCreationAttributes {
+  name: string;
+  slug: string;
+  description?: string;
+  iconUrl?: string;
+  isActive?: boolean;
 }
 
 export interface IUser {

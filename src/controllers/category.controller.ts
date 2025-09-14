@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { CategoryService } from '@/services/category.service';
 
 import { sendSuccessResponse, sendNotFoundResponse, sendErrorResponse, sendValidationErrorResponse } from '@/utils/responseFormatter';
-import { MESSAGES } from '@/constants';
+import { MESSAGES, HTTP_STATUS } from '@/constants';
 import { asyncHandler } from '@/middlewares/error';
 import { uploadImage, deleteImageByUrl } from '@/utils/cloudinary';
 import { AuthenticatedRequest, UploadedFile } from '@/types';
@@ -75,7 +75,7 @@ export const createCategory = asyncHandler(async (req: AuthenticatedRequest, res
       category,
       imageUrl: uploadResult.url,
       public_id: uploadResult.public_id,
-    }, MESSAGES.SUCCESS.CREATED, 201);
+    }, MESSAGES.SUCCESS.CREATED, HTTP_STATUS.CREATED);
   } catch (error) {
     if (error instanceof Error) {
       sendErrorResponse(res, error.message);

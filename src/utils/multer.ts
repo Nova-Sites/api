@@ -99,4 +99,7 @@ export const uploadSingleWithError = (fieldName: string) =>
 export const uploadMultipleWithError = (fieldName: string, maxCount: number = 10) =>
   createUploadMiddleware(upload.array(fieldName, maxCount));
 
+export const uploadFieldsWithError = (fields: Array<{ name: string; maxCount?: number }>) =>
+  createUploadMiddleware(upload.fields(fields));
+
 export default upload;
