@@ -16,8 +16,20 @@ import { validate } from '@/middlewares/validator';
 import { USER_ROUTES } from '@/constants';
 import { authenticateToken, requireAdmin, requireStaff } from '@/middlewares/auth';
 import { uploadSingleWithError } from '@/utils/multer';
+import { generalRateLimiter, strictRateLimiter, uploadRateLimiter } from '@/middlewares/rateLimiter';
+import { securityHeaders, requestSizeLimiter, sqlInjectionProtection, xssProtection, sanitizeRequest } from '@/middlewares/security';
+import { requestLogger } from '@/middlewares/logger';
+import { asyncHandler } from '@/middlewares/error';
 
 const router = Router();
+
+// Apply security middlewares to all routes
+router.use(securityHeaders);
+router.use(requestSizeLimiter(5 * 1024 * 1024)); // 5MB limit for users
+router.use(sqlInjectionProtection);
+router.use(xssProtection);
+router.use(sanitizeRequest);
+router.use(requestLogger);
 
 // Validation chains
 const validateId = [
@@ -61,85 +73,95 @@ const validateChangePassword = [
 // GET /api/v1/users - Get all users
 router.get(
   USER_ROUTES.GET_ALL,
+  generalRateLimiter,
   authenticateToken,
   requireStaff,
-  getAllUsers
+  asyncHandler(getAllUsers)
 );
 
 // GET /api/v1/users/search - Search users
 router.get(
   '/search',
+  generalRateLimiter,
   validate(validateSearch),
   authenticateToken,
   requireStaff,
-  searchUsers
+  asyncHandler(searchUsers)
 );
 
 // GET /api/v1/users/role/:role - Get users by role
 router.get(
   '/role/:role',
+  generalRateLimiter,
   validate(validateRole),
   authenticateToken,
   requireAdmin,
-  getUsersByRole
+  asyncHandler(getUsersByRole)
 );
 
 // GET /api/v1/users/profile - Get user profile
 router.get(
   USER_ROUTES.GET_PROFILE,
+  generalRateLimiter,
   authenticateToken,
-  getUserProfile
+  asyncHandler(getUserProfile)
 );
 
 // GET /api/v1/users/:id - Get user by ID
 router.get(
   USER_ROUTES.GET_BY_ID,
+  generalRateLimiter,
   validate(validateId),
   authenticateToken,
   requireStaff,
-  getUserById
+  asyncHandler(getUserById)
 );
 
 // PUT /api/v1/users/profile - Update user profile
 router.put(
   USER_ROUTES.UPDATE_PROFILE,
+  strictRateLimiter,
   authenticateToken,
   validate(validateUpdateProfile),
-  updateUserProfile
+  asyncHandler(updateUserProfile)
 );
 
 // PUT /api/v1/users/profile/avatar - Update user avatar
 router.put(
   USER_ROUTES.UPDATE_AVATAR,
+  uploadRateLimiter,
   authenticateToken,
   uploadSingleWithError('avatar'),
-  updateUserAvatar
+  asyncHandler(updateUserAvatar)
 );
 
 // PUT /api/v1/users/change-password - Change password
 router.put(
   USER_ROUTES.CHANGE_PASSWORD,
+  strictRateLimiter,
   authenticateToken,
   validate(validateChangePassword),
-  changePassword
+  asyncHandler(changePassword)
 );
 
 // DELETE /api/v1/users/:id - Delete user
 router.delete(
   USER_ROUTES.DELETE,
+  strictRateLimiter,
   validate(validateId),
   authenticateToken,
   requireAdmin,
-  deleteUser
+  asyncHandler(deleteUser)
 );
 
 // PATCH /api/v1/users/:id/soft-delete - Soft delete user
 router.patch(
   USER_ROUTES.SOFT_DELETE,
+  strictRateLimiter,
   validate(validateId),
   authenticateToken,
   requireAdmin,
-  softDeleteUser
+  asyncHandler(softDeleteUser)
 );
 
 export default router; 

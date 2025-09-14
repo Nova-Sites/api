@@ -4,6 +4,9 @@ import sequelize from '@/config/database';
 import { Category } from './Category';
 import { Product } from './Product';
 import { User } from './User';
+import { ProductImage } from './ProductImage';
+import { TechStack } from './TechStack';
+import { ProductTechStack } from './ProductTechStack';
 
 // Initialize associations after all models are loaded
 const initializeAssociations = () => {
@@ -50,13 +53,50 @@ const initializeAssociations = () => {
     as: 'updater',
   });
 
+  // ProductImage associations
+  ProductImage.belongsTo(Product, {
+    foreignKey: 'productId',
+    as: 'product',
+  });
+
+  Product.hasMany(ProductImage, {
+    foreignKey: 'productId',
+    as: 'images',
+  });
+
+  // ProductTechStack associations
+  ProductTechStack.belongsTo(Product, {
+    foreignKey: 'productId',
+    as: 'product',
+  });
+
+  ProductTechStack.belongsTo(TechStack, {
+    foreignKey: 'techId',
+    as: 'techStack',
+  });
+
+  // Many-to-many associations between Product and TechStack
+  Product.belongsToMany(TechStack, {
+    through: ProductTechStack,
+    foreignKey: 'productId',
+    otherKey: 'techId',
+    as: 'techStacks',
+  });
+
+  TechStack.belongsToMany(Product, {
+    through: ProductTechStack,
+    foreignKey: 'techId',
+    otherKey: 'productId',
+    as: 'products',
+  });
+
 };
 
 // Initialize associations
 initializeAssociations();
 
 // Export models
-export { Category, Product, User };
+export { Category, Product, User, ProductImage, TechStack, ProductTechStack };
 
 // Export sequelize instance
 export default sequelize; 

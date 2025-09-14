@@ -2,11 +2,15 @@ import {
   Model,
   DataTypes,
   BelongsTo,
+  HasMany,
+  BelongsToMany,
 } from 'sequelize';
 import sequelize from '@/config/database';
 import { IProduct, ProductCreationAttributes } from '@/types';
 import { Category } from './Category';
 import { User } from './User';
+import { ProductImage } from './ProductImage';
+import { TechStack } from './TechStack';
 
 export class Product extends Model<IProduct, ProductCreationAttributes> {
   public id!: number;
@@ -27,6 +31,8 @@ export class Product extends Model<IProduct, ProductCreationAttributes> {
     category: BelongsTo<Product, Category>;
     creator?: BelongsTo<Product, User>;
     updater?: BelongsTo<Product, User>;
+    images: HasMany<Product, ProductImage>;
+    techStacks: BelongsToMany<Product, TechStack>;
   };
 }
 

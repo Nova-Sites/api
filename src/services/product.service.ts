@@ -1,6 +1,6 @@
-import { Product, Category } from '@/models';
+import { Product, Category, ProductImage, TechStack, ProductTechStack } from '@/models';
 import { IProduct, PaginationQuery, ProductFilters } from '@/types';
-import { Op } from 'sequelize';
+import { Op, Transaction } from 'sequelize';
 
 export class ProductService {
   /**
@@ -42,6 +42,20 @@ export class ProductService {
           attributes: ['id', 'name', 'slug'],
           where: { isActive: true },
         },
+        {
+          model: ProductImage,
+          as: 'images',
+          attributes: ['id', 'url', 'sortOrder'],
+          order: [['sortOrder', 'ASC']],
+        },
+        {
+          model: TechStack,
+          as: 'techStacks',
+          attributes: ['id', 'name', 'slug', 'iconUrl'],
+          through: { attributes: [] },
+          where: { isActive: true },
+          required: false,
+        },
       ],
       order: [[sortBy, sortOrder]],
       limit: parseInt(limit.toString()),
@@ -62,6 +76,20 @@ export class ProductService {
           as: 'category',
           attributes: ['id', 'name', 'slug'],
         },
+        {
+          model: ProductImage,
+          as: 'images',
+          attributes: ['id', 'url', 'sortOrder'],
+          order: [['sortOrder', 'ASC']],
+        },
+        {
+          model: TechStack,
+          as: 'techStacks',
+          attributes: ['id', 'name', 'slug', 'iconUrl'],
+          through: { attributes: [] },
+          where: { isActive: true },
+          required: false,
+        },
       ],
     });
   }
@@ -78,6 +106,20 @@ export class ProductService {
           as: 'category',
           attributes: ['id', 'name', 'slug'],
         },
+        {
+          model: ProductImage,
+          as: 'images',
+          attributes: ['id', 'url', 'sortOrder'],
+          order: [['sortOrder', 'ASC']],
+        },
+        {
+          model: TechStack,
+          as: 'techStacks',
+          attributes: ['id', 'name', 'slug', 'iconUrl'],
+          through: { attributes: [] },
+          where: { isActive: true },
+          required: false,
+        },
       ],
     });
   }
@@ -89,20 +131,59 @@ export class ProductService {
     name: string;
     description: string;
     image: string;
+    images?: string[];
     price: number;
     categoryId: number;
+    techStackIds?: number[];
     createdBy?: number;
-  }): Promise<IProduct> {
+  }, transaction?: Transaction): Promise<IProduct> {
     const slug = productData.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
     
-    return await Product.create({
-      ...productData,
+    const product = await Product.create({
+      name: productData.name,
+      description: productData.description,
+      image: productData.image,
+      price: productData.price,
+      categoryId: productData.categoryId,
+      ...(productData.createdBy && { createdBy: productData.createdBy }),
       slug,
       isActive: true,
-    });
+    }, transaction ? { transaction } : {});
+
+    // Create additional images
+    if (productData.images && productData.images.length > 0) {
+      const now = new Date();
+      const imagePromises = productData.images.map((url, index) =>
+        ProductImage.create({
+          productId: product.id,
+          url,
+          sortOrder: index + 1,
+          createdAt: now,
+          updatedAt: now,
+        } as any, transaction ? { transaction } : {})
+      );
+      await Promise.all(imagePromises);
+    }
+
+    // Associate tech stacks
+    if (productData.techStackIds && productData.techStackIds.length > 0) {
+      const now = new Date();
+      const techStackPromises = productData.techStackIds.map(techId =>
+        ProductTechStack.create({
+          productId: product.id,
+          techId,
+          createdAt: now,
+          updatedAt: now,
+        } as any, transaction ? { transaction } : {})
+      );
+      await Promise.all(techStackPromises);
+    }
+
+    // Return product with relations
+    return await this.getProductById(product.id) as IProduct;
   }
 
   /**
@@ -114,19 +195,67 @@ export class ProductService {
       name?: string;
       description?: string;
       image?: string;
+      images?: string[];
       price?: number;
       categoryId?: number;
+      techStackIds?: number[];
       isActive?: boolean;
       updatedBy?: number;
-    }
+    },
+    transaction?: Transaction
   ): Promise<IProduct | null> {
     const product = await Product.findByPk(id);
     if (!product) {
       return null;
     }
 
-    await product.update(updateData);
-    return product;
+    // Update basic product data
+    const { images, techStackIds, ...basicUpdateData } = updateData;
+    await product.update(basicUpdateData, transaction ? { transaction } : {});
+
+    // Update additional images
+    if (images !== undefined) {
+      // Delete existing images
+      await ProductImage.destroy({ where: { productId: id }, ...(transaction && { transaction }) });
+      
+      // Create new images
+      if (images.length > 0) {
+        const now = new Date();
+        const imagePromises = images.map((url, index) =>
+          ProductImage.create({
+            productId: id,
+            url,
+            sortOrder: index + 1,
+            createdAt: now,
+            updatedAt: now,
+          } as any, transaction ? { transaction } : {})
+        );
+        await Promise.all(imagePromises);
+      }
+    }
+
+    // Update tech stacks
+    if (techStackIds !== undefined) {
+      // Delete existing tech stack associations
+      await ProductTechStack.destroy({ where: { productId: id }, ...(transaction && { transaction }) });
+      
+      // Create new associations
+      if (techStackIds.length > 0) {
+        const now = new Date();
+        const techStackPromises = techStackIds.map(techId =>
+          ProductTechStack.create({
+            productId: id,
+            techId,
+            createdAt: now,
+            updatedAt: now,
+          } as any, transaction ? { transaction } : {})
+        );
+        await Promise.all(techStackPromises);
+      }
+    }
+
+    // Return product with relations
+    return await this.getProductById(id);
   }
 
   /**
@@ -167,6 +296,20 @@ export class ProductService {
           as: 'category',
           attributes: ['id', 'name', 'slug'],
         },
+        {
+          model: ProductImage,
+          as: 'images',
+          attributes: ['id', 'url', 'sortOrder'],
+          order: [['sortOrder', 'ASC']],
+        },
+        {
+          model: TechStack,
+          as: 'techStacks',
+          attributes: ['id', 'name', 'slug', 'iconUrl'],
+          through: { attributes: [] },
+          where: { isActive: true },
+          required: false,
+        },
       ],
       order: [[sortBy, sortOrder]],
       limit: parseInt(limit.toString()),
@@ -187,6 +330,20 @@ export class ProductService {
           model: Category,
           as: 'category',
           attributes: ['id', 'name', 'slug'],
+        },
+        {
+          model: ProductImage,
+          as: 'images',
+          attributes: ['id', 'url', 'sortOrder'],
+          order: [['sortOrder', 'ASC']],
+        },
+        {
+          model: TechStack,
+          as: 'techStacks',
+          attributes: ['id', 'name', 'slug', 'iconUrl'],
+          through: { attributes: [] },
+          where: { isActive: true },
+          required: false,
         },
       ],
       order: [['views', 'DESC']],
@@ -217,6 +374,20 @@ export class ProductService {
           model: Category,
           as: 'category',
           attributes: ['id', 'name', 'slug'],
+        },
+        {
+          model: ProductImage,
+          as: 'images',
+          attributes: ['id', 'url', 'sortOrder'],
+          order: [['sortOrder', 'ASC']],
+        },
+        {
+          model: TechStack,
+          as: 'techStacks',
+          attributes: ['id', 'name', 'slug', 'iconUrl'],
+          through: { attributes: [] },
+          where: { isActive: true },
+          required: false,
         },
       ],
       order: [[sortBy, sortOrder]],
@@ -250,6 +421,61 @@ export class ProductService {
           model: Category,
           as: 'category',
           attributes: ['id', 'name', 'slug'],
+        },
+        {
+          model: ProductImage,
+          as: 'images',
+          attributes: ['id', 'url', 'sortOrder'],
+          order: [['sortOrder', 'ASC']],
+        },
+        {
+          model: TechStack,
+          as: 'techStacks',
+          attributes: ['id', 'name', 'slug', 'iconUrl'],
+          through: { attributes: [] },
+          where: { isActive: true },
+          required: false,
+        },
+      ],
+      order: [[sortBy, sortOrder]],
+      limit: parseInt(limit.toString()),
+      offset,
+    });
+
+    return { count, products };
+  }
+
+  /**
+   * Get products by tech stack
+   */
+  static async getProductsByTechStack(
+    techStackId: number,
+    pagination: PaginationQuery
+  ): Promise<{ count: number; products: IProduct[] }> {
+    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC' } = pagination;
+    const offset = (page - 1) * limit;
+
+    const { count, rows: products } = await Product.findAndCountAll({
+      where: { isActive: true },
+      include: [
+        {
+          model: Category,
+          as: 'category',
+          attributes: ['id', 'name', 'slug'],
+        },
+        {
+          model: ProductImage,
+          as: 'images',
+          attributes: ['id', 'url', 'sortOrder'],
+          order: [['sortOrder', 'ASC']],
+        },
+        {
+          model: TechStack,
+          as: 'techStacks',
+          attributes: ['id', 'name', 'slug', 'iconUrl'],
+          through: { attributes: [] },
+          where: { id: techStackId, isActive: true },
+          required: true,
         },
       ],
       order: [[sortBy, sortOrder]],

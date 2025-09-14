@@ -1,17 +1,19 @@
 import { Request, Response } from 'express';
 import { ProductService } from '@/services/product.service';
+import sequelize from '@/config/database';
 
 import { sendSuccessResponse, sendNotFoundResponse, sendErrorResponse, sendValidationErrorResponse } from '@/utils/responseFormatter';
-import { MESSAGES, PAGINATION } from '@/constants';
+import { MESSAGES, PAGINATION, HTTP_STATUS } from '@/constants';
 import { asyncHandler } from '@/middlewares/error';
-import { uploadImage, deleteImageByUrl } from '@/utils/cloudinary';
+import { uploadImage, deleteImageByUrl, uploadMultipleImages } from '@/utils/cloudinary';
 import { AuthenticatedRequest, UploadedFile } from '@/types';
 
 export const getAllProducts = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { page, limit, sortBy, sortOrder, categoryId, search, minPrice, maxPrice } = req.query as any;
+  const { page, limit, sortBy, sortOrder, categoryId, techStackIds, search, minPrice, maxPrice } = req.query as any;
   
   const filters = {
     ...(categoryId && { categoryId: parseInt(categoryId) }),
+    ...(techStackIds && { techStackIds: Array.isArray(techStackIds) ? techStackIds.map(Number) : [parseInt(techStackIds)] }),
     ...(search && { search }),
     ...(minPrice && { minPrice: parseFloat(minPrice) }),
     ...(maxPrice && { maxPrice: parseFloat(maxPrice) }),
@@ -69,44 +71,83 @@ export const getProductBySlug = asyncHandler(async (req: Request, res: Response)
 });
 
 export const createProduct = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  const { name, description, price, categoryId } = req.body;
-  const file = req.file as UploadedFile;
+  const { name, description, price, categoryId, techStackIds } = req.body;
+  
+  // Handle files from multer.fields
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+  const mainImageFile = files?.['image']?.[0] as UploadedFile;
+  const additionalImageFiles = files?.['images'] as UploadedFile[];
 
-  if (!file) {
+  // Check if we have at least one image
+  if (!mainImageFile && (!additionalImageFiles || additionalImageFiles.length === 0)) {
     return sendValidationErrorResponse(res, MESSAGES.ERROR.UPLOAD.NO_FILE_UPLOADED);
   }
 
-  try {
-    // Upload image to Cloudinary
-    const uploadResult = await uploadImage(
-      file.buffer,
-      'products',
-      `product_${Date.now()}`
-    );
+  const transaction = await sequelize.transaction();
 
-    if (!uploadResult.success) {
-      return sendErrorResponse(res, uploadResult.error || 'Image upload failed');
+  try {
+    let mainImageUrl = '';
+    let additionalImages: string[] = [];
+
+    // Upload main image
+    if (mainImageFile) {
+      const uploadResult = await uploadImage(
+        mainImageFile.buffer,
+        'products',
+        `product_${Date.now()}_main`
+      );
+
+      if (!uploadResult.success) {
+        await transaction.rollback();
+        return sendErrorResponse(res, uploadResult.error || 'Main image upload failed');
+      }
+      mainImageUrl = uploadResult.url!;
+    }
+
+    // Upload additional images
+    if (additionalImageFiles && additionalImageFiles.length > 0) {
+      const fileBuffers = additionalImageFiles.map(file => file.buffer);
+      const uploadResults = await uploadMultipleImages(
+        fileBuffers,
+        'products',
+        `product_${Date.now()}_additional`
+      );
+
+      // Check if all uploads were successful
+      const failedUploads = uploadResults.filter(result => !result.success);
+      if (failedUploads.length > 0) {
+        await transaction.rollback();
+        return sendErrorResponse(res, failedUploads[0]?.error || 'Additional images upload failed');
+      }
+
+      const successfulUploads = uploadResults.filter(result => result.success);
+      additionalImages = successfulUploads.map(result => result.url!);
     }
 
     const payload: any = {
       name,
       description,
-      image: uploadResult.url,
+      image: mainImageUrl,
+      images: additionalImages,
       price: parseFloat(price),
       categoryId: parseInt(categoryId),
+      ...(techStackIds && { techStackIds: Array.isArray(techStackIds) ? techStackIds.map(Number) : [parseInt(techStackIds)] }),
     };
     if (req.user?.userId !== undefined) {
       payload.createdBy = req.user.userId;
     }
     
-    const product = await ProductService.createProduct(payload);
+    const product = await ProductService.createProduct(payload, transaction);
+    
+    await transaction.commit();
     
     sendSuccessResponse(res, {
       product,
-      imageUrl: uploadResult.url,
-      public_id: uploadResult.public_id,
-    }, MESSAGES.SUCCESS.CREATED, 201);
+      imageUrl: mainImageUrl,
+      additionalImages,
+    }, MESSAGES.SUCCESS.CREATED, HTTP_STATUS.CREATED);
   } catch (error) {
+    await transaction.rollback();
     if (error instanceof Error) {
       sendErrorResponse(res, error.message);
     } else {
@@ -121,8 +162,14 @@ export const updateProduct = asyncHandler(async (req: AuthenticatedRequest, res:
     return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
   }
   
-  const { name, description, price, categoryId, isActive } = req.body;
-  const file = req.file as UploadedFile;
+  const { name, description, price, categoryId, techStackIds, isActive } = req.body;
+  
+  // Handle files from multer.fields
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+  const mainImageFile = files?.['image']?.[0] as UploadedFile;
+  const additionalImageFiles = files?.['images'] as UploadedFile[];
+
+  const transaction = await sequelize.transaction();
 
   try {
     const updateData: any = {};
@@ -131,45 +178,78 @@ export const updateProduct = asyncHandler(async (req: AuthenticatedRequest, res:
     if (price !== undefined) updateData.price = parseFloat(price);
     if (categoryId !== undefined) updateData.categoryId = parseInt(categoryId);
     if (isActive !== undefined) updateData.isActive = isActive;
+    if (techStackIds !== undefined) {
+      updateData.techStackIds = Array.isArray(techStackIds) ? techStackIds.map(Number) : [parseInt(techStackIds)];
+    }
     updateData.updatedBy = req.user?.userId;
 
-    // If new image is uploaded
-    let uploadResult: any = null;
-    if (file) {
-      // Upload new image to Cloudinary
-      uploadResult = await uploadImage(
-        file.buffer,
+    // Get current product to delete old images if needed
+    const currentProduct = await ProductService.getProductById(parseInt(id));
+    if (!currentProduct) {
+      await transaction.rollback();
+      return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
+    }
+
+    // Handle main image upload
+    if (mainImageFile) {
+      const uploadResult = await uploadImage(
+        mainImageFile.buffer,
         'products',
-        `product_${id}_${Date.now()}`
+        `product_${id}_${Date.now()}_main`
       );
 
       if (!uploadResult.success) {
-        return sendErrorResponse(res, uploadResult.error || 'Image upload failed');
+        await transaction.rollback();
+        return sendErrorResponse(res, uploadResult.error || 'Main image upload failed');
       }
 
       updateData.image = uploadResult.url;
       
-      // Get current product to delete old image
-      const currentProduct = await ProductService.getProductById(parseInt(id));
-      if (currentProduct && currentProduct.image) {
-        // Delete old image from Cloudinary
+      // Delete old main image from Cloudinary
+      if (currentProduct.image) {
         await deleteImageByUrl(currentProduct.image);
       }
     }
+
+    // Handle additional images upload
+    if (additionalImageFiles && additionalImageFiles.length > 0) {
+      const fileBuffers = additionalImageFiles.map(file => file.buffer);
+      const uploadResults = await uploadMultipleImages(
+        fileBuffers,
+        'products',
+        `product_${id}_${Date.now()}_additional`
+      );
+
+      // Check if all uploads were successful
+      const failedUploads = uploadResults.filter(result => !result.success);
+      if (failedUploads.length > 0) {
+        await transaction.rollback();
+        return sendErrorResponse(res, failedUploads[0]?.error || 'Additional images upload failed');
+      }
+
+      const successfulUploads = uploadResults.filter(result => result.success);
+      updateData.images = successfulUploads.map(result => result.url!);
+    }
     
-    const product = await ProductService.updateProduct(parseInt(id), updateData);
+    const product = await ProductService.updateProduct(parseInt(id), updateData, transaction);
     if (!product) {
+      await transaction.rollback();
       return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
     }
     
+    await transaction.commit();
+    
     const responseData: any = { product };
-    if (file && uploadResult && updateData.image) {
+    if (updateData.image) {
       responseData.imageUrl = updateData.image;
-      responseData.public_id = uploadResult.public_id;
+    }
+    if (updateData.images) {
+      responseData.additionalImages = updateData.images;
     }
     
     sendSuccessResponse(res, responseData, MESSAGES.SUCCESS.UPDATED);
   } catch (error) {
+    await transaction.rollback();
     if (error instanceof Error) {
       sendErrorResponse(res, error.message);
     } else {
@@ -290,6 +370,34 @@ export const getProductsByPriceRange = asyncHandler(async (req: Request, res: Re
     parseFloat(maxPrice),
     pagination
   );
+  
+  sendSuccessResponse(res, {
+    products,
+    pagination: {
+      page: pagination.page,
+      limit: pagination.limit,
+      total: count,
+      totalPages: Math.ceil(count / pagination.limit),
+    },
+  }, MESSAGES.SUCCESS.FETCHED);
+});
+
+export const getProductsByTechStack = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { techStackId } = req.params;
+  if (!techStackId) {
+    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
+  }
+  
+  const { page, limit, sortBy, sortOrder } = req.query as any;
+  
+  const pagination = {
+    page: parseInt(page) || PAGINATION.DEFAULT_PAGE,
+    limit: parseInt(limit) || PAGINATION.DEFAULT_LIMIT,
+    sortBy: sortBy || 'createdAt',
+    sortOrder: sortOrder || 'DESC',
+  };
+  
+  const { count, products } = await ProductService.getProductsByTechStack(parseInt(techStackId), pagination);
   
   sendSuccessResponse(res, {
     products,

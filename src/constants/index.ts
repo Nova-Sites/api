@@ -11,6 +11,7 @@ export const HTTP_STATUS = {
   CONFLICT: 409,
   UNPROCESSABLE_ENTITY: 422,
   TOO_MANY_REQUESTS: 429,
+  PAYLOAD_TOO_LARGE: 413,
   INTERNAL_SERVER_ERROR: 500,
   SERVICE_UNAVAILABLE: 503,
 } as const;
@@ -53,6 +54,16 @@ export const MESSAGES = {
       GET_PRODUCT_BY_SLUG_SUCCESS: 'Product fetched successfully',
       CREATE_PRODUCT_SUCCESS: 'Product created successfully',
     },
+    TECH_STACK: {
+      GET_ALL_TECH_STACKS_SUCCESS: 'All tech stacks fetched successfully',
+      GET_TECH_STACK_BY_ID_SUCCESS: 'Tech stack fetched successfully',
+      GET_TECH_STACK_BY_SLUG_SUCCESS: 'Tech stack fetched successfully',
+      CREATE_TECH_STACK_SUCCESS: 'Tech stack created successfully',
+      UPDATE_TECH_STACK_SUCCESS: 'Tech stack updated successfully',
+      DELETE_TECH_STACK_SUCCESS: 'Tech stack deleted successfully',
+      SEARCH_TECH_STACKS_SUCCESS: 'Tech stacks search completed',
+      GET_TECH_STACKS_WITH_PRODUCT_COUNT_SUCCESS: 'Tech stacks with product count fetched successfully',
+    },
     UPLOAD: {
       SINGLE_IMAGE_SUCCESS: 'Image uploaded successfully',
       MULTIPLE_IMAGES_SUCCESS: 'Images uploaded successfully',
@@ -73,6 +84,7 @@ export const MESSAGES = {
     INVALID_CREDENTIALS: 'Invalid credentials',
     FILE_TOO_LARGE: 'File size too large',
     INVALID_FILE_TYPE: 'Invalid file type',
+    RATE_LIMIT_EXCEEDED: 'Too many requests. Please try again later.',
     AUTH: {
       FAILED_TO_SEND_OTP: 'Failed to send verification email. Please try again.',
       FAILED_TO_REGISTER: 'Registration failed',
@@ -135,6 +147,14 @@ export const MESSAGES = {
       PASSWORD_CHANGE_FAILED: 'Password change failed',
       REQUIRED_MIN_MAX_PRICE: 'Min and max price are required',
       REQUIRED_SLUG: 'Slug is required',
+    },
+    TECH_STACK: {
+      REQUIRED_ID: 'Tech stack ID is required',
+      TECH_STACK_NOT_FOUND: 'Tech stack not found',
+      REQUIRED_SEARCH: 'Search term is required',
+      REQUIRED_SLUG: 'Tech stack slug is required',
+      SLUG_ALREADY_EXISTS: 'Tech stack with this slug already exists',
+      INVALID_ID: 'Invalid tech stack ID',
     },
     UPLOAD: {
       NO_FILE_UPLOADED: 'No file uploaded',
