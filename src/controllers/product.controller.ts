@@ -29,7 +29,7 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response): 
   const { count, products } = await ProductService.getAllProducts(filters, pagination);
   
   sendSuccessResponse(res, {
-    products,
+    items: products,
     pagination: {
       page: pagination.page,
       limit: pagination.limit,
@@ -71,7 +71,7 @@ export const getProductBySlug = asyncHandler(async (req: Request, res: Response)
 });
 
 export const createProduct = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  const { name, description, price, categoryId, techStackIds } = req.body;
+  const { name, description, price, categoryId, videoUrl, techStackIds } = req.body;
   
   // Handle files from multer.fields
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
@@ -127,6 +127,7 @@ export const createProduct = asyncHandler(async (req: AuthenticatedRequest, res:
     const payload: any = {
       name,
       description,
+      videoUrl,
       image: mainImageUrl,
       images: additionalImages,
       price: parseFloat(price),

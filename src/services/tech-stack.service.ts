@@ -1,21 +1,51 @@
-import { TechStack, Product } from '@/models';
-import { ITechStack, TechStackCreationAttributes } from '@/types';
-import { Op } from 'sequelize';
+import { TechStack, Product } from "@/models";
+import {
+  ITechStack,
+  PaginationQuery,
+  TechStackCreationAttributes,
+  TechStackFilters,
+} from "@/types";
+import { Op } from "sequelize";
 
 export class TechStackService {
   /**
    * Get all tech stacks with optional filtering
    */
-  static async getAllTechStacks(isActive?: boolean): Promise<ITechStack[]> {
+  static async getAllTechStacks(
+    filters: TechStackFilters = {},
+    pagination: PaginationQuery
+  ): Promise<{ count: number; techStacks: ITechStack[] }> {
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = "createdAt",
+      sortOrder = "DESC",
+    } = pagination;
+    const offset = (page - 1) * limit;
+
     const whereClause: any = {};
-    if (isActive !== undefined) {
-      whereClause.isActive = isActive;
+    if (filters.isActive !== undefined) {
+      whereClause.isActive = filters.isActive;
     }
 
-    return await TechStack.findAll({
+    if (filters.search) {
+      whereClause[Op.or] = [
+        { name: { [Op.iLike]: `%${filters.search}%` } },
+        { slug: { [Op.iLike]: `%${filters.search}%` } },
+      ];
+    }
+
+    const { count, rows: techStacks } = await TechStack.findAndCountAll({
       where: whereClause,
-      order: [['name', 'ASC']],
+      order: [[sortBy, sortOrder]],
+      offset,
+      limit,
     });
+
+    return {
+      count,
+      techStacks,
+    };
   }
 
   /**
@@ -28,14 +58,16 @@ export class TechStackService {
   /**
    * Get tech stack by ID with products
    */
-  static async getTechStackByIdWithProducts(id: number): Promise<ITechStack | null> {
+  static async getTechStackByIdWithProducts(
+    id: number
+  ): Promise<ITechStack | null> {
     return await TechStack.findByPk(id, {
       include: [
         {
           model: Product,
-          as: 'products',
+          as: "products",
           through: { attributes: [] },
-          attributes: ['id', 'name', 'slug', 'image', 'price'],
+          attributes: ["id", "name", "slug", "image", "price"],
         },
       ],
     });
@@ -53,15 +85,17 @@ export class TechStackService {
   /**
    * Get tech stack by slug with products
    */
-  static async getTechStackBySlugWithProducts(slug: string): Promise<ITechStack | null> {
+  static async getTechStackBySlugWithProducts(
+    slug: string
+  ): Promise<ITechStack | null> {
     return await TechStack.findOne({
       where: { slug },
       include: [
         {
           model: Product,
-          as: 'products',
+          as: "products",
           through: { attributes: [] },
-          attributes: ['id', 'name', 'slug', 'image', 'price'],
+          attributes: ["id", "name", "slug", "image", "price"],
         },
       ],
     });
@@ -70,14 +104,19 @@ export class TechStackService {
   /**
    * Create new tech stack
    */
-  static async createTechStack(data: TechStackCreationAttributes): Promise<ITechStack> {
+  static async createTechStack(
+    data: TechStackCreationAttributes
+  ): Promise<ITechStack> {
     return await TechStack.create(data);
   }
 
   /**
    * Update tech stack
    */
-  static async updateTechStack(id: number, data: Partial<TechStackCreationAttributes>): Promise<ITechStack | null> {
+  static async updateTechStack(
+    id: number,
+    data: Partial<TechStackCreationAttributes>
+  ): Promise<ITechStack | null> {
     const techStack = await TechStack.findByPk(id);
     if (!techStack) {
       return null;
@@ -103,7 +142,10 @@ export class TechStackService {
   /**
    * Check if slug exists
    */
-  static async isSlugExists(slug: string, excludeId?: number): Promise<boolean> {
+  static async isSlugExists(
+    slug: string,
+    excludeId?: number
+  ): Promise<boolean> {
     const whereClause: any = { slug };
     if (excludeId) {
       whereClause.id = { [Op.ne]: excludeId };
@@ -126,7 +168,7 @@ export class TechStackService {
         ],
         isActive: true,
       },
-      order: [['name', 'ASC']],
+      order: [["name", "ASC"]],
     });
   }
 
@@ -139,15 +181,15 @@ export class TechStackService {
       include: [
         {
           model: Product,
-          as: 'products',
+          as: "products",
           through: { attributes: [] },
-          attributes: ['id'],
+          attributes: ["id"],
         },
       ],
-      order: [['name', 'ASC']],
+      order: [["name", "ASC"]],
     });
 
-    return techStacks.map(techStack => {
+    return techStacks.map((techStack) => {
       const techStackData = techStack.toJSON() as any;
       return {
         ...techStackData,
@@ -165,16 +207,16 @@ export class TechStackService {
       include: [
         {
           model: Product,
-          as: 'products',
+          as: "products",
           through: { attributes: [] },
-          attributes: ['id'],
+          attributes: ["id"],
         },
       ],
-      order: [['name', 'ASC']],
+      order: [["name", "ASC"]],
     });
 
     return techStacks
-      .map(techStack => {
+      .map((techStack) => {
         const techStackData = techStack.toJSON() as any;
         return {
           ...techStackData,
@@ -194,7 +236,7 @@ export class TechStackService {
         id: { [Op.in]: ids },
         isActive: true,
       },
-      order: [['name', 'ASC']],
+      order: [["name", "ASC"]],
     });
   }
 
@@ -228,7 +270,7 @@ export class TechStackService {
         include: [
           {
             model: Product,
-            as: 'products',
+            as: "products",
             through: { attributes: [] },
             required: true,
           },

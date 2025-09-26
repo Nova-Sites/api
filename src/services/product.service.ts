@@ -98,7 +98,7 @@ export class ProductService {
    * Get product by slug
    */
   static async getProductBySlug(slug: string): Promise<IProduct | null> {
-    return await Product.findOne({
+    const product = await Product.findOne({
       where: { slug, isActive: true },
       include: [
         {
@@ -122,6 +122,11 @@ export class ProductService {
         },
       ],
     });
+    if (!product) {
+      return null;
+    }
+    await this.incrementViews(product.id);
+    return product;
   }
 
   /**
@@ -130,6 +135,7 @@ export class ProductService {
   static async createProduct(productData: {
     name: string;
     description: string;
+    videoUrl: string;
     image: string;
     images?: string[];
     price: number;
@@ -145,6 +151,7 @@ export class ProductService {
     const product = await Product.create({
       name: productData.name,
       description: productData.description,
+      videoUrl: productData.videoUrl,
       image: productData.image,
       price: productData.price,
       categoryId: productData.categoryId,

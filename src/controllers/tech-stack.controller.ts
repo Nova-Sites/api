@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { TechStackService } from '@/services/tech-stack.service';
 import { sendSuccessResponse, sendNotFoundResponse, sendErrorResponse, sendValidationErrorResponse } from '@/utils/responseFormatter';
-import { MESSAGES, HTTP_STATUS } from '@/constants';
+import { MESSAGES, HTTP_STATUS, PAGINATION } from '@/constants';
 import { asyncHandler } from '@/middlewares/error';
 import { uploadImage, deleteImageByUrl } from '@/utils/cloudinary';
 import { generateSlug } from '@/utils';
@@ -9,12 +9,32 @@ import { AuthenticatedRequest, UploadedFile } from '@/types';
 
 // Get all tech stacks
 export const getAllTechStacks = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { isActive } = req.query;
-  
-  const isActiveFilter = isActive !== undefined ? isActive === 'true' : undefined;
-  const techStacks = await TechStackService.getAllTechStacks(isActiveFilter);
+  const { page, limit, sortBy, sortOrder, search, isActive} = req.query as any;
 
-  sendSuccessResponse(res, techStacks, MESSAGES.SUCCESS.TECH_STACK.GET_ALL_TECH_STACKS_SUCCESS);
+  const filters = {
+    ...(search && { search }),
+    ...(isActive && { isActive: isActive === 'true' }),
+  };
+
+  const pagination = {
+    page: parseInt(page) || PAGINATION.DEFAULT_PAGE,
+    limit: parseInt(limit) || PAGINATION.DEFAULT_LIMIT,
+    sortBy: sortBy || 'createdAt',
+    sortOrder: sortOrder || 'DESC',
+  };
+  
+  
+  const { count, techStacks } = await TechStackService.getAllTechStacks(filters, pagination);
+
+  sendSuccessResponse(res, {
+    items: techStacks,
+    pagination: {
+      page: pagination.page,
+      limit: pagination.limit,
+      total: count,
+      totalPages: Math.ceil(count / pagination.limit),
+    },
+  }, MESSAGES.SUCCESS.FETCHED);
 });
 
 // Get tech stack by ID
@@ -57,11 +77,13 @@ export const createTechStack = asyncHandler(async (req: AuthenticatedRequest, re
   const { name, slug, description, isActive = true } = req.body;
   const file = req.file as UploadedFile;
 
+  if (!file) {
+    return sendValidationErrorResponse(res, MESSAGES.ERROR.UPLOAD.NO_FILE_UPLOADED);
+  }
+
   try {
-    // Handle icon upload
-    let iconUrl = req.body.iconUrl;
     let uploadResult: any = null;
-    if (file) {
+
       uploadResult = await uploadImage(
         file.buffer,
         'tech-stacks',
@@ -72,9 +94,6 @@ export const createTechStack = asyncHandler(async (req: AuthenticatedRequest, re
         return sendErrorResponse(res, uploadResult.error || 'Icon upload failed');
       }
 
-      iconUrl = uploadResult.url;
-    }
-
     // Generate slug if not provided
     const finalSlug = slug || generateSlug(name);
 
@@ -84,19 +103,17 @@ export const createTechStack = asyncHandler(async (req: AuthenticatedRequest, re
       return sendValidationErrorResponse(res, MESSAGES.ERROR.TECH_STACK.SLUG_ALREADY_EXISTS);
     }
 
-    const techStack = await TechStackService.createTechStack({
+    const payload: any = {
       name,
-      slug: finalSlug,
+      iconUrl: uploadResult.url,
       description,
-      iconUrl,
-      isActive,
-    });
+      slug: finalSlug,
+      isActive
+    };
+
+    const techStack = await TechStackService.createTechStack(payload);
 
     const responseData: any = { techStack };
-    if (file && iconUrl) {
-      responseData.iconUrl = iconUrl;
-      responseData.public_id = uploadResult?.public_id;
-    }
 
     sendSuccessResponse(res, responseData, MESSAGES.SUCCESS.TECH_STACK.CREATE_TECH_STACK_SUCCESS, HTTP_STATUS.CREATED);
   } catch (error) {
