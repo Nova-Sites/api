@@ -51,6 +51,7 @@ export interface IProduct {
   id: number;
   name: string;
   description: string;
+  videoUrl?: string;
   image: string; // Main image (backward compatibility)
   price: number;
   views: number;
@@ -69,6 +70,7 @@ export interface IProduct {
 export interface ProductCreationAttributes {
   name: string;
   description: string;
+  videoUrl?: string;
   image: string; // Main image
   images?: string[]; // Additional images URLs
   price: number;
@@ -85,6 +87,11 @@ export interface ProductFilters {
   minPrice?: number;
   maxPrice?: number;
   search?: string;
+}
+
+export interface TechStackFilters {
+  search?: string;
+  isActive?: boolean;
 }
 
 export interface ITechStack {

@@ -118,6 +118,6 @@ export const strictRateLimiter = createRateLimiter({
 
 export const uploadRateLimiter = createRateLimiter({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // 10 uploads per hour
+  max: 20, // 20 uploads per hour
   message: 'Too many upload attempts. Please try again later.',
 });

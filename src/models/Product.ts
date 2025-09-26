@@ -16,6 +16,7 @@ export class Product extends Model<IProduct, ProductCreationAttributes> {
   public id!: number;
   public name!: string;
   public description!: string;
+  public videoUrl?: string;
   public image!: string;
   public price!: number;
   public views!: number;
@@ -57,6 +58,13 @@ Product.init(
       validate: {
         notEmpty: true,
         len: [10, 2000],
+      },
+    },
+    videoUrl: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      validate: {
+        isUrl: true,
       },
     },
     image: {
