@@ -2,8 +2,23 @@ import { Request, Response } from 'express';
 import { ProductService } from '@/services/product.service';
 import sequelize from '@/config/database';
 
-import { sendSuccessResponse, sendNotFoundResponse, sendErrorResponse, sendValidationErrorResponse } from '@/utils/responseFormatter';
-import { MESSAGES, PAGINATION, HTTP_STATUS } from '@/constants';
+import { 
+  sendSuccessResponse, 
+  sendNotFoundResponse, 
+  sendErrorResponse, 
+  sendValidationErrorResponse 
+} from '@/utils/responseFormatter';
+import { 
+  validatePaginationParams,
+  validateId,
+  validateIds,
+  validatePriceRange,
+  validateSearchTerm,
+  validateStringField,
+  validateNumericField,
+  validateBooleanField
+} from '@/utils/validation';
+import { MESSAGES, HTTP_STATUS } from '@/constants';
 import { asyncHandler } from '@/middlewares/error';
 import { uploadImage, deleteImageByUrl, uploadMultipleImages } from '@/utils/cloudinary';
 import { AuthenticatedRequest, UploadedFile } from '@/types';
@@ -11,20 +26,48 @@ import { AuthenticatedRequest, UploadedFile } from '@/types';
 export const getAllProducts = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { page, limit, sortBy, sortOrder, categoryId, techStackIds, search, minPrice, maxPrice } = req.query as any;
   
-  const filters = {
-    ...(categoryId && { categoryId: parseInt(categoryId) }),
-    ...(techStackIds && { techStackIds: Array.isArray(techStackIds) ? techStackIds.map(Number) : [parseInt(techStackIds)] }),
-    ...(search && { search }),
-    ...(minPrice && { minPrice: parseFloat(minPrice) }),
-    ...(maxPrice && { maxPrice: parseFloat(maxPrice) }),
-  };
+  // Validate pagination parameters
+  const pagination = validatePaginationParams({ page, limit, sortBy, sortOrder });
   
-  const pagination = {
-    page: parseInt(page) || PAGINATION.DEFAULT_PAGE,
-    limit: parseInt(limit) || PAGINATION.DEFAULT_LIMIT,
-    sortBy: sortBy || 'createdAt',
-    sortOrder: sortOrder || 'DESC',
-  };
+  // Validate and build filters
+  const filters: any = {};
+  
+  // Validate categoryId
+  if (categoryId) {
+    const categoryValidation = validateId(categoryId, 'Category ID');
+    if (!categoryValidation.isValid) {
+      return sendValidationErrorResponse(res, categoryValidation.error!);
+    }
+    filters.categoryId = categoryValidation.value;
+  }
+  
+  // Validate techStackIds
+  if (techStackIds) {
+    const techStackValidation = validateIds(techStackIds, 'Tech Stack IDs');
+    if (!techStackValidation.isValid) {
+      return sendValidationErrorResponse(res, techStackValidation.error!);
+    }
+    filters.techStackIds = techStackValidation.values;
+  }
+  
+  // Validate search term
+  if (search) {
+    const searchValidation = validateSearchTerm(search);
+    if (!searchValidation.isValid) {
+      return sendValidationErrorResponse(res, searchValidation.error!);
+    }
+    filters.search = searchValidation.value;
+  }
+  
+  // Validate price range
+  if (minPrice || maxPrice) {
+    const priceValidation = validatePriceRange(minPrice || 0, maxPrice || Number.MAX_SAFE_INTEGER);
+    if (!priceValidation.isValid) {
+      return sendValidationErrorResponse(res, priceValidation.error!);
+    }
+    if (minPrice) filters.minPrice = priceValidation.min;
+    if (maxPrice) filters.maxPrice = priceValidation.max;
+  }
   
   const { count, products } = await ProductService.getAllProducts(filters, pagination);
   
@@ -41,28 +84,34 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response): 
 
 export const getProductById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  if (!id) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
+  
+  // Validate ID
+  const idValidation = validateId(id, 'Product ID');
+  if (!idValidation.isValid) {
+    return sendValidationErrorResponse(res, idValidation.error!);
   }
   
-  const product = await ProductService.getProductById(parseInt(id));
+  const product = await ProductService.getProductById(idValidation.value!);
   if (!product) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
   }
   
   // Increment views
-  await ProductService.incrementViews(parseInt(id));
+  await ProductService.incrementViews(idValidation.value!);
   
   sendSuccessResponse(res, product, MESSAGES.SUCCESS.FETCHED);
 });
 
 export const getProductBySlug = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { slug } = req.params;
-  if (!slug) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_SLUG);
+  
+  // Validate slug
+  const slugValidation = validateStringField(slug, 'Slug', true);
+  if (!slugValidation.isValid) {
+    return sendValidationErrorResponse(res, slugValidation.error!);
   }
   
-  const product = await ProductService.getProductBySlug(slug);
+  const product = await ProductService.getProductBySlug(slugValidation.value!);
   if (!product) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
   }
@@ -72,6 +121,47 @@ export const getProductBySlug = asyncHandler(async (req: Request, res: Response)
 
 export const createProduct = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { name, description, price, categoryId, videoUrl, techStackIds } = req.body;
+  
+  // Validate required fields
+  const nameValidation = validateStringField(name, 'Name', true);
+  if (!nameValidation.isValid) {
+    return sendValidationErrorResponse(res, nameValidation.error!);
+  }
+  
+  const descriptionValidation = validateStringField(description, 'Description', true);
+  if (!descriptionValidation.isValid) {
+    return sendValidationErrorResponse(res, descriptionValidation.error!);
+  }
+  
+  const priceValidation = validateNumericField(price, 'Price', 0);
+  if (!priceValidation.isValid) {
+    return sendValidationErrorResponse(res, priceValidation.error!);
+  }
+  
+  const categoryIdValidation = validateId(categoryId, 'Category ID');
+  if (!categoryIdValidation.isValid) {
+    return sendValidationErrorResponse(res, categoryIdValidation.error!);
+  }
+  
+  // Validate optional fields
+  let videoUrlValue = '';
+  if (videoUrl) {
+    const videoUrlValidation = validateStringField(videoUrl, 'Video URL', false);
+    if (!videoUrlValidation.isValid) {
+      return sendValidationErrorResponse(res, videoUrlValidation.error!);
+    }
+    videoUrlValue = videoUrlValidation.value!;
+  }
+  
+  // Validate techStackIds if provided
+  let techStackIdsValue: number[] = [];
+  if (techStackIds) {
+    const techStackValidation = validateIds(techStackIds, 'Tech Stack IDs');
+    if (!techStackValidation.isValid) {
+      return sendValidationErrorResponse(res, techStackValidation.error!);
+    }
+    techStackIdsValue = techStackValidation.values!;
+  }
   
   // Handle files from multer.fields
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
@@ -125,14 +215,14 @@ export const createProduct = asyncHandler(async (req: AuthenticatedRequest, res:
     }
 
     const payload: any = {
-      name,
-      description,
-      videoUrl,
+      name: nameValidation.value,
+      description: descriptionValidation.value,
+      videoUrl: videoUrlValue,
       image: mainImageUrl,
       images: additionalImages,
-      price: parseFloat(price),
-      categoryId: parseInt(categoryId),
-      ...(techStackIds && { techStackIds: Array.isArray(techStackIds) ? techStackIds.map(Number) : [parseInt(techStackIds)] }),
+      price: priceValidation.value,
+      categoryId: categoryIdValidation.value,
+      ...(techStackIdsValue.length > 0 && { techStackIds: techStackIdsValue }),
     };
     if (req.user?.userId !== undefined) {
       payload.createdBy = req.user.userId;
@@ -159,11 +249,13 @@ export const createProduct = asyncHandler(async (req: AuthenticatedRequest, res:
 
 export const updateProduct = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
-  if (!id) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
-  }
-  
   const { name, description, price, categoryId, techStackIds, isActive } = req.body;
+  
+  // Validate ID
+  const idValidation = validateId(id, 'Product ID');
+  if (!idValidation.isValid) {
+    return sendValidationErrorResponse(res, idValidation.error!);
+  }
   
   // Handle files from multer.fields
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
@@ -174,18 +266,66 @@ export const updateProduct = asyncHandler(async (req: AuthenticatedRequest, res:
 
   try {
     const updateData: any = {};
-    if (name !== undefined) updateData.name = name;
-    if (description !== undefined) updateData.description = description;
-    if (price !== undefined) updateData.price = parseFloat(price);
-    if (categoryId !== undefined) updateData.categoryId = parseInt(categoryId);
-    if (isActive !== undefined) updateData.isActive = isActive;
-    if (techStackIds !== undefined) {
-      updateData.techStackIds = Array.isArray(techStackIds) ? techStackIds.map(Number) : [parseInt(techStackIds)];
+    
+    // Validate optional fields
+    if (name !== undefined) {
+      const nameValidation = validateStringField(name, 'Name', true);
+      if (!nameValidation.isValid) {
+        await transaction.rollback();
+        return sendValidationErrorResponse(res, nameValidation.error!);
+      }
+      updateData.name = nameValidation.value;
     }
+    
+    if (description !== undefined) {
+      const descriptionValidation = validateStringField(description, 'Description', true);
+      if (!descriptionValidation.isValid) {
+        await transaction.rollback();
+        return sendValidationErrorResponse(res, descriptionValidation.error!);
+      }
+      updateData.description = descriptionValidation.value;
+    }
+    
+    if (price !== undefined) {
+      const priceValidation = validateNumericField(price, 'Price', 0);
+      if (!priceValidation.isValid) {
+        await transaction.rollback();
+        return sendValidationErrorResponse(res, priceValidation.error!);
+      }
+      updateData.price = priceValidation.value;
+    }
+    
+    if (categoryId !== undefined) {
+      const categoryIdValidation = validateId(categoryId, 'Category ID');
+      if (!categoryIdValidation.isValid) {
+        await transaction.rollback();
+        return sendValidationErrorResponse(res, categoryIdValidation.error!);
+      }
+      updateData.categoryId = categoryIdValidation.value;
+    }
+    
+    if (isActive !== undefined) {
+      const isActiveValidation = validateBooleanField(isActive, 'Is Active');
+      if (!isActiveValidation.isValid) {
+        await transaction.rollback();
+        return sendValidationErrorResponse(res, isActiveValidation.error!);
+      }
+      updateData.isActive = isActiveValidation.value;
+    }
+    
+    if (techStackIds !== undefined) {
+      const techStackValidation = validateIds(techStackIds, 'Tech Stack IDs');
+      if (!techStackValidation.isValid) {
+        await transaction.rollback();
+        return sendValidationErrorResponse(res, techStackValidation.error!);
+      }
+      updateData.techStackIds = techStackValidation.values;
+    }
+    
     updateData.updatedBy = req.user?.userId;
 
     // Get current product to delete old images if needed
-    const currentProduct = await ProductService.getProductById(parseInt(id));
+    const currentProduct = await ProductService.getProductById(idValidation.value!);
     if (!currentProduct) {
       await transaction.rollback();
       return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
@@ -232,7 +372,7 @@ export const updateProduct = asyncHandler(async (req: AuthenticatedRequest, res:
       updateData.images = successfulUploads.map(result => result.url!);
     }
     
-    const product = await ProductService.updateProduct(parseInt(id), updateData, transaction);
+    const product = await ProductService.updateProduct(idValidation.value!, updateData, transaction);
     if (!product) {
       await transaction.rollback();
       return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
@@ -261,11 +401,14 @@ export const updateProduct = asyncHandler(async (req: AuthenticatedRequest, res:
 
 export const deleteProduct = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
-  if (!id) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
+  
+  // Validate ID
+  const idValidation = validateId(id, 'Product ID');
+  if (!idValidation.isValid) {
+    return sendValidationErrorResponse(res, idValidation.error!);
   }
   
-  const success = await ProductService.deleteProduct(parseInt(id), req.user?.userId);
+  const success = await ProductService.deleteProduct(idValidation.value!, req.user?.userId);
   if (!success) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
   }
@@ -275,11 +418,14 @@ export const deleteProduct = asyncHandler(async (req: AuthenticatedRequest, res:
 
 export const softDeleteProduct = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
-  if (!id) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
+  
+  // Validate ID
+  const idValidation = validateId(id, 'Product ID');
+  if (!idValidation.isValid) {
+    return sendValidationErrorResponse(res, idValidation.error!);
   }
   
-  const success = await ProductService.deleteProduct(parseInt(id), req.user?.userId);
+  const success = await ProductService.deleteProduct(idValidation.value!, req.user?.userId);
   if (!success) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.PRODUCT_NOT_FOUND);
   }
@@ -289,7 +435,15 @@ export const softDeleteProduct = asyncHandler(async (req: AuthenticatedRequest, 
 
 export const getPopularProducts = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { limit } = req.query;
-  const limitNum = limit ? parseInt(limit as string) : 10;
+  
+  // Validate limit parameter
+  const limitValidation = validateNumericField(limit || 10, 'Limit', 1);
+  if (!limitValidation.isValid) {
+    return sendValidationErrorResponse(res, limitValidation.error!);
+  }
+  
+  // Ensure limit doesn't exceed maximum
+  const limitNum = Math.min(limitValidation.value!, 50);
   
   const products = await ProductService.getFeaturedProducts(limitNum);
   sendSuccessResponse(res, products, MESSAGES.SUCCESS.FETCHED);
@@ -297,20 +451,18 @@ export const getPopularProducts = asyncHandler(async (req: Request, res: Respons
 
 export const getProductsByCategory = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { categoryId } = req.params;
-  if (!categoryId) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
-  }
-  
   const { page, limit, sortBy, sortOrder } = req.query as any;
   
-  const pagination = {
-    page: parseInt(page) || PAGINATION.DEFAULT_PAGE,
-    limit: parseInt(limit) || PAGINATION.DEFAULT_LIMIT,
-    sortBy: sortBy || 'createdAt',
-    sortOrder: sortOrder || 'DESC',
-  };
+  // Validate categoryId
+  const categoryIdValidation = validateId(categoryId, 'Category ID');
+  if (!categoryIdValidation.isValid) {
+    return sendValidationErrorResponse(res, categoryIdValidation.error!);
+  }
   
-  const { count, products } = await ProductService.getProductsByCategory(parseInt(categoryId), pagination);
+  // Validate pagination parameters
+  const pagination = validatePaginationParams({ page, limit, sortBy, sortOrder });
+  
+  const { count, products } = await ProductService.getProductsByCategory(categoryIdValidation.value!, pagination);
   
   sendSuccessResponse(res, {
     products,
@@ -324,21 +476,18 @@ export const getProductsByCategory = asyncHandler(async (req: Request, res: Resp
 });
 
 export const searchProducts = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { search } = req.query;
-  if (!search || typeof search !== 'string') {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_SEARCH);
+  const { search, page, limit, sortBy, sortOrder } = req.query as any;
+  
+  // Validate search term
+  const searchValidation = validateSearchTerm(search);
+  if (!searchValidation.isValid) {
+    return sendValidationErrorResponse(res, searchValidation.error!);
   }
   
-  const { page, limit, sortBy, sortOrder } = req.query as any;
+  // Validate pagination parameters
+  const pagination = validatePaginationParams({ page, limit, sortBy, sortOrder });
   
-  const pagination = {
-    page: parseInt(page) || PAGINATION.DEFAULT_PAGE,
-    limit: parseInt(limit) || PAGINATION.DEFAULT_LIMIT,
-    sortBy: sortBy || 'createdAt',
-    sortOrder: sortOrder || 'DESC',
-  };
-  
-  const { count, products } = await ProductService.searchProducts(search, pagination);
+  const { count, products } = await ProductService.searchProducts(searchValidation.value!, pagination);
   
   sendSuccessResponse(res, {
     products,
@@ -353,22 +502,20 @@ export const searchProducts = asyncHandler(async (req: Request, res: Response): 
 
 export const getProductsByPriceRange = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { minPrice, maxPrice } = req.params;
-  if (!minPrice || !maxPrice) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_MIN_MAX_PRICE);
-  }
-  
   const { page, limit, sortBy, sortOrder } = req.query as any;
   
-  const pagination = {
-    page: parseInt(page) || PAGINATION.DEFAULT_PAGE,
-    limit: parseInt(limit) || PAGINATION.DEFAULT_LIMIT,
-    sortBy: sortBy || 'createdAt',
-    sortOrder: sortOrder || 'DESC',
-  };
+  // Validate price range
+  const priceValidation = validatePriceRange(minPrice, maxPrice);
+  if (!priceValidation.isValid) {
+    return sendValidationErrorResponse(res, priceValidation.error!);
+  }
+  
+  // Validate pagination parameters
+  const pagination = validatePaginationParams({ page, limit, sortBy, sortOrder });
   
   const { count, products } = await ProductService.getProductsByPriceRange(
-    parseFloat(minPrice),
-    parseFloat(maxPrice),
+    priceValidation.min!,
+    priceValidation.max!,
     pagination
   );
   
@@ -385,20 +532,18 @@ export const getProductsByPriceRange = asyncHandler(async (req: Request, res: Re
 
 export const getProductsByTechStack = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { techStackId } = req.params;
-  if (!techStackId) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.PRODUCT.REQUIRED_ID);
-  }
-  
   const { page, limit, sortBy, sortOrder } = req.query as any;
   
-  const pagination = {
-    page: parseInt(page) || PAGINATION.DEFAULT_PAGE,
-    limit: parseInt(limit) || PAGINATION.DEFAULT_LIMIT,
-    sortBy: sortBy || 'createdAt',
-    sortOrder: sortOrder || 'DESC',
-  };
+  // Validate techStackId
+  const techStackIdValidation = validateId(techStackId, 'Tech Stack ID');
+  if (!techStackIdValidation.isValid) {
+    return sendValidationErrorResponse(res, techStackIdValidation.error!);
+  }
   
-  const { count, products } = await ProductService.getProductsByTechStack(parseInt(techStackId), pagination);
+  // Validate pagination parameters
+  const pagination = validatePaginationParams({ page, limit, sortBy, sortOrder });
+  
+  const { count, products } = await ProductService.getProductsByTechStack(techStackIdValidation.value!, pagination);
   
   sendSuccessResponse(res, {
     products,

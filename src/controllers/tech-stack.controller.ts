@@ -1,7 +1,15 @@
 import { Request, Response } from 'express';
 import { TechStackService } from '@/services/tech-stack.service';
 import { sendSuccessResponse, sendNotFoundResponse, sendErrorResponse, sendValidationErrorResponse } from '@/utils/responseFormatter';
-import { MESSAGES, HTTP_STATUS, PAGINATION } from '@/constants';
+import { 
+  validateId,
+  validateStringField,
+  validateSearchTerm,
+  validatePaginationParams,
+  validateBooleanField,
+  validateSlug
+} from '@/utils/validation';
+import { MESSAGES, HTTP_STATUS } from '@/constants';
 import { asyncHandler } from '@/middlewares/error';
 import { uploadImage, deleteImageByUrl } from '@/utils/cloudinary';
 import { generateSlug } from '@/utils';
@@ -11,18 +19,29 @@ import { AuthenticatedRequest, UploadedFile } from '@/types';
 export const getAllTechStacks = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { page, limit, sortBy, sortOrder, search, isActive} = req.query as any;
 
-  const filters = {
-    ...(search && { search }),
-    ...(isActive && { isActive: isActive === 'true' }),
-  };
-
-  const pagination = {
-    page: parseInt(page) || PAGINATION.DEFAULT_PAGE,
-    limit: parseInt(limit) || PAGINATION.DEFAULT_LIMIT,
-    sortBy: sortBy || 'createdAt',
-    sortOrder: sortOrder || 'DESC',
-  };
+  // Validate pagination parameters
+  const pagination = validatePaginationParams({ page, limit, sortBy, sortOrder });
   
+  // Validate and build filters
+  const filters: any = {};
+  
+  // Validate search term
+  if (search) {
+    const searchValidation = validateSearchTerm(search);
+    if (!searchValidation.isValid) {
+      return sendValidationErrorResponse(res, searchValidation.error!);
+    }
+    filters.search = searchValidation.value;
+  }
+  
+  // Validate isActive filter
+  if (isActive !== undefined) {
+    const isActiveValidation = validateBooleanField(isActive, 'Is Active');
+    if (!isActiveValidation.isValid) {
+      return sendValidationErrorResponse(res, isActiveValidation.error!);
+    }
+    filters.isActive = isActiveValidation.value;
+  }
   
   const { count, techStacks } = await TechStackService.getAllTechStacks(filters, pagination);
 
@@ -40,16 +59,14 @@ export const getAllTechStacks = asyncHandler(async (req: Request, res: Response)
 // Get tech stack by ID
 export const getTechStackById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  if (!id) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.TECH_STACK.REQUIRED_ID);
-  }
   
-  const techStackId = parseInt(id, 10);
-  if (isNaN(techStackId)) {
-    return sendValidationErrorResponse(res, MESSAGES.ERROR.TECH_STACK.INVALID_ID);
+  // Validate ID
+  const idValidation = validateId(id, 'Tech Stack ID');
+  if (!idValidation.isValid) {
+    return sendValidationErrorResponse(res, idValidation.error!);
   }
 
-  const techStack = await TechStackService.getTechStackByIdWithProducts(techStackId);
+  const techStack = await TechStackService.getTechStackByIdWithProducts(idValidation.value!);
   if (!techStack) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.TECH_STACK.TECH_STACK_NOT_FOUND);
   }
@@ -60,11 +77,14 @@ export const getTechStackById = asyncHandler(async (req: Request, res: Response)
 // Get tech stack by slug
 export const getTechStackBySlug = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { slug } = req.params;
-  if (!slug) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.TECH_STACK.REQUIRED_SLUG);
+  
+  // Validate slug
+  const slugValidation = validateStringField(slug, 'Slug', true);
+  if (!slugValidation.isValid) {
+    return sendValidationErrorResponse(res, slugValidation.error!);
   }
   
-  const techStack = await TechStackService.getTechStackBySlugWithProducts(slug);
+  const techStack = await TechStackService.getTechStackBySlugWithProducts(slugValidation.value!);
   if (!techStack) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.TECH_STACK.TECH_STACK_NOT_FOUND);
   }
@@ -76,6 +96,17 @@ export const getTechStackBySlug = asyncHandler(async (req: Request, res: Respons
 export const createTechStack = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { name, slug, description, isActive = true } = req.body;
   const file = req.file as UploadedFile;
+
+  // Validate required fields
+  const nameValidation = validateStringField(name, 'Name', true);
+  if (!nameValidation.isValid) {
+    return sendValidationErrorResponse(res, nameValidation.error!);
+  }
+
+  const descriptionValidation = validateStringField(description, 'Description', true);
+  if (!descriptionValidation.isValid) {
+    return sendValidationErrorResponse(res, descriptionValidation.error!);
+  }
 
   if (!file) {
     return sendValidationErrorResponse(res, MESSAGES.ERROR.UPLOAD.NO_FILE_UPLOADED);
@@ -97,6 +128,12 @@ export const createTechStack = asyncHandler(async (req: AuthenticatedRequest, re
     // Generate slug if not provided
     const finalSlug = slug || generateSlug(name);
 
+    // Validate slug format
+    const slugValidation = validateSlug(finalSlug);
+    if (!slugValidation.isValid) {
+      return sendValidationErrorResponse(res, slugValidation.error!);
+    }
+
     // Check if slug already exists
     const slugExists = await TechStackService.isSlugExists(finalSlug);
     if (slugExists) {
@@ -104,9 +141,9 @@ export const createTechStack = asyncHandler(async (req: AuthenticatedRequest, re
     }
 
     const payload: any = {
-      name,
+      name: nameValidation.value,
       iconUrl: uploadResult.url,
-      description,
+      description: descriptionValidation.value,
       slug: finalSlug,
       isActive
     };
@@ -128,28 +165,47 @@ export const createTechStack = asyncHandler(async (req: AuthenticatedRequest, re
 // Update tech stack
 export const updateTechStack = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
-  if (!id) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.TECH_STACK.REQUIRED_ID);
-  }
-  
   const { name, slug, description, isActive } = req.body;
   const file = req.file as UploadedFile;
-  const techStackId = parseInt(id, 10);
 
-  if (isNaN(techStackId)) {
-    return sendValidationErrorResponse(res, MESSAGES.ERROR.TECH_STACK.INVALID_ID);
+  // Validate ID
+  const idValidation = validateId(id, 'Tech Stack ID');
+  if (!idValidation.isValid) {
+    return sendValidationErrorResponse(res, idValidation.error!);
   }
 
   try {
-    const existingTechStack = await TechStackService.getTechStackById(techStackId);
+    const existingTechStack = await TechStackService.getTechStackById(idValidation.value!);
     if (!existingTechStack) {
       return sendNotFoundResponse(res, MESSAGES.ERROR.TECH_STACK.TECH_STACK_NOT_FOUND);
     }
 
     const updateData: any = {};
-    if (name !== undefined) updateData.name = name;
-    if (description !== undefined) updateData.description = description;
-    if (isActive !== undefined) updateData.isActive = isActive;
+    
+    // Validate optional fields
+    if (name !== undefined) {
+      const nameValidation = validateStringField(name, 'Name', true);
+      if (!nameValidation.isValid) {
+        return sendValidationErrorResponse(res, nameValidation.error!);
+      }
+      updateData.name = nameValidation.value;
+    }
+    
+    if (description !== undefined) {
+      const descriptionValidation = validateStringField(description, 'Description', true);
+      if (!descriptionValidation.isValid) {
+        return sendValidationErrorResponse(res, descriptionValidation.error!);
+      }
+      updateData.description = descriptionValidation.value;
+    }
+    
+    if (isActive !== undefined) {
+      const isActiveValidation = validateBooleanField(isActive, 'Is Active');
+      if (!isActiveValidation.isValid) {
+        return sendValidationErrorResponse(res, isActiveValidation.error!);
+      }
+      updateData.isActive = isActiveValidation.value;
+    }
 
     // Handle icon upload
     let uploadResult: any = null;
@@ -174,14 +230,19 @@ export const updateTechStack = asyncHandler(async (req: AuthenticatedRequest, re
 
     // Check slug uniqueness if slug is being updated
     if (slug && slug !== existingTechStack.slug) {
-      const slugExists = await TechStackService.isSlugExists(slug, techStackId);
+      const slugValidation = validateSlug(slug);
+      if (!slugValidation.isValid) {
+        return sendValidationErrorResponse(res, slugValidation.error!);
+      }
+      
+      const slugExists = await TechStackService.isSlugExists(slug, idValidation.value!);
       if (slugExists) {
         return sendValidationErrorResponse(res, MESSAGES.ERROR.TECH_STACK.SLUG_ALREADY_EXISTS);
       }
       updateData.slug = slug;
     }
 
-    const techStack = await TechStackService.updateTechStack(techStackId, updateData);
+    const techStack = await TechStackService.updateTechStack(idValidation.value!, updateData);
     
     const responseData: any = { techStack };
     if (file && uploadResult && updateData.iconUrl) {
@@ -202,16 +263,14 @@ export const updateTechStack = asyncHandler(async (req: AuthenticatedRequest, re
 // Delete tech stack
 export const deleteTechStack = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
-  if (!id) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.TECH_STACK.REQUIRED_ID);
-  }
   
-  const techStackId = parseInt(id, 10);
-  if (isNaN(techStackId)) {
-    return sendValidationErrorResponse(res, MESSAGES.ERROR.TECH_STACK.INVALID_ID);
+  // Validate ID
+  const idValidation = validateId(id, 'Tech Stack ID');
+  if (!idValidation.isValid) {
+    return sendValidationErrorResponse(res, idValidation.error!);
   }
 
-  const deleted = await TechStackService.deleteTechStack(techStackId);
+  const deleted = await TechStackService.deleteTechStack(idValidation.value!);
   if (!deleted) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.TECH_STACK.TECH_STACK_NOT_FOUND);
   }
@@ -222,11 +281,14 @@ export const deleteTechStack = asyncHandler(async (req: AuthenticatedRequest, re
 // Search tech stacks
 export const searchTechStacks = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { search } = req.query;
-  if (!search || typeof search !== 'string') {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.TECH_STACK.REQUIRED_SEARCH);
+  
+  // Validate search term
+  const searchValidation = validateSearchTerm(search);
+  if (!searchValidation.isValid) {
+    return sendValidationErrorResponse(res, searchValidation.error!);
   }
   
-  const techStacks = await TechStackService.searchTechStacks(search);
+  const techStacks = await TechStackService.searchTechStacks(searchValidation.value!);
   sendSuccessResponse(res, techStacks, MESSAGES.SUCCESS.TECH_STACK.SEARCH_TECH_STACKS_SUCCESS);
 });
 
