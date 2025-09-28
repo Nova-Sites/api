@@ -2,6 +2,13 @@ import { Request, Response } from 'express';
 import { UserService } from '@/services/user.service';
 
 import { sendSuccessResponse, sendErrorResponse, sendValidationErrorResponse, sendNotFoundResponse } from '@/utils/responseFormatter';
+import { 
+  validateId,
+  validateStringField,
+  validateSearchTerm,
+  validateEmail,
+  validatePassword
+} from '@/utils/validation';
 import { MESSAGES } from '@/constants';
 import { asyncHandler } from '@/middlewares/error';
 import { uploadAvatar } from '@/utils/cloudinary';
@@ -14,11 +21,14 @@ export const getAllUsers = asyncHandler(async (_req: Request, res: Response): Pr
 
 export const getUserById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  if (!id) {
-    return sendValidationErrorResponse(res, MESSAGES.ERROR.USER.REQUIRED_ID);
+  
+  // Validate ID
+  const idValidation = validateId(id, 'User ID');
+  if (!idValidation.isValid) {
+    return sendValidationErrorResponse(res, idValidation.error!);
   }
   
-  const user = await UserService.getUserById(parseInt(id));
+  const user = await UserService.getUserById(idValidation.value!);
   if (!user) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.USER.USER_NOT_FOUND);
   }
@@ -58,9 +68,31 @@ export const updateUserProfile = asyncHandler(async (req: AuthenticatedRequest, 
     const { username, email, image } = req.body;
     
     const updateData: { username?: string; email?: string; image?: string } = {};
-    if (username !== undefined) updateData.username = username;
-    if (email !== undefined) updateData.email = email;
-    if (image !== undefined) updateData.image = image;
+    
+    // Validate optional fields
+    if (username !== undefined) {
+      const usernameValidation = validateStringField(username, 'Username', true);
+      if (!usernameValidation.isValid) {
+        return sendValidationErrorResponse(res, usernameValidation.error!);
+      }
+      updateData.username = usernameValidation.value!;
+    }
+    
+    if (email !== undefined) {
+      const emailValidation = validateEmail(email);
+      if (!emailValidation.isValid) {
+        return sendValidationErrorResponse(res, emailValidation.error!);
+      }
+      updateData.email = email;
+    }
+    
+    if (image !== undefined) {
+      const imageValidation = validateStringField(image, 'Image URL', false);
+      if (!imageValidation.isValid) {
+        return sendValidationErrorResponse(res, imageValidation.error!);
+      }
+      updateData.image = imageValidation.value!;
+    }
 
     const updatedUser = await UserService.updateUserProfile(userId, updateData);
     if (!updatedUser) {
@@ -129,11 +161,19 @@ export const changePassword = asyncHandler(async (req: AuthenticatedRequest, res
 
     const { currentPassword, newPassword } = req.body;
     
-    if (!currentPassword || !newPassword) {
-      return sendValidationErrorResponse(res, MESSAGES.ERROR.USER.REQUIRED_CURRENT_PASSWORD_NEW_PASSWORD);
+    // Validate current password
+    const currentPasswordValidation = validateStringField(currentPassword, 'Current Password', true);
+    if (!currentPasswordValidation.isValid) {
+      return sendValidationErrorResponse(res, currentPasswordValidation.error!);
+    }
+    
+    // Validate new password
+    const newPasswordValidation = validatePassword(newPassword);
+    if (!newPasswordValidation.isValid) {
+      return sendValidationErrorResponse(res, newPasswordValidation.error!);
     }
 
-    const success = await UserService.changePassword(userId, currentPassword, newPassword);
+    const success = await UserService.changePassword(userId, currentPasswordValidation.value!, newPassword);
     if (!success) {
       return sendNotFoundResponse(res, MESSAGES.ERROR.USER.USER_NOT_FOUND);
     }
@@ -154,11 +194,14 @@ export const changePassword = asyncHandler(async (req: AuthenticatedRequest, res
 
 export const deleteUser = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
-  if (!id) {
-    return sendValidationErrorResponse(res, MESSAGES.ERROR.USER.REQUIRED_ID);
+  
+  // Validate ID
+  const idValidation = validateId(id, 'User ID');
+  if (!idValidation.isValid) {
+    return sendValidationErrorResponse(res, idValidation.error!);
   }
   
-  const success = await UserService.deleteUser(parseInt(id), req.user?.userId);
+  const success = await UserService.deleteUser(idValidation.value!, req.user?.userId);
   if (!success) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.USER.USER_NOT_FOUND);
   }
@@ -168,11 +211,14 @@ export const deleteUser = asyncHandler(async (req: AuthenticatedRequest, res: Re
 
 export const softDeleteUser = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
-  if (!id) {
-    return sendValidationErrorResponse(res, MESSAGES.ERROR.USER.REQUIRED_ID);
+  
+  // Validate ID
+  const idValidation = validateId(id, 'User ID');
+  if (!idValidation.isValid) {
+    return sendValidationErrorResponse(res, idValidation.error!);
   }
   
-  const success = await UserService.deleteUser(parseInt(id), req.user?.userId);
+  const success = await UserService.deleteUser(idValidation.value!, req.user?.userId);
   if (!success) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.USER.USER_NOT_FOUND);
   }
@@ -182,20 +228,26 @@ export const softDeleteUser = asyncHandler(async (req: AuthenticatedRequest, res
 
 export const getUsersByRole = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { role } = req.params;
-  if (!role) {
-    return sendValidationErrorResponse(res, MESSAGES.ERROR.USER.REQUIRED_ROLE);
+  
+  // Validate role
+  const roleValidation = validateStringField(role, 'Role', true);
+  if (!roleValidation.isValid) {
+    return sendValidationErrorResponse(res, roleValidation.error!);
   }
   
-  const users = await UserService.getUsersByRole(role);
+  const users = await UserService.getUsersByRole(roleValidation.value!);
   sendSuccessResponse(res, users, MESSAGES.SUCCESS.FETCHED);
 });
 
 export const searchUsers = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { search } = req.query;
-  if (!search || typeof search !== 'string') {
-    return sendValidationErrorResponse(res, MESSAGES.ERROR.USER.REQUIRED_SEARCH);
+  
+  // Validate search term
+  const searchValidation = validateSearchTerm(search);
+  if (!searchValidation.isValid) {
+    return sendValidationErrorResponse(res, searchValidation.error!);
   }
   
-  const users = await UserService.searchUsers(search);
+  const users = await UserService.searchUsers(searchValidation.value!);
   sendSuccessResponse(res, users, MESSAGES.SUCCESS.FETCHED);
 }); 

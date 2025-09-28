@@ -15,21 +15,21 @@ export class ProductService {
 
     const where: any = { isActive: true };
 
-    // Apply filters
+    // Apply filters (already validated in controller)
     if (filters.categoryId) {
       where.categoryId = filters.categoryId;
     }
 
-    if (filters.minPrice || filters.maxPrice) {
+    if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
       where.price = {};
-      if (filters.minPrice) where.price[Op.gte] = filters.minPrice;
-      if (filters.maxPrice) where.price[Op.lte] = filters.maxPrice;
+      if (filters.minPrice !== undefined) where.price[Op.gte] = filters.minPrice;
+      if (filters.maxPrice !== undefined) where.price[Op.lte] = filters.maxPrice;
     }
 
     if (filters.search) {
       where[Op.or] = [
-        { name: { [Op.iLike]: `%${filters.search}%` } },
-        { description: { [Op.iLike]: `%${filters.search}%` } },
+        { name: { [Op.like]: `%${filters.search}%` } },
+        { description: { [Op.like]: `%${filters.search}%` } },
       ];
     }
 
@@ -57,7 +57,7 @@ export class ProductService {
           required: false,
         },
       ],
-      order: [[sortBy, sortOrder]],
+      order: [[sortBy as string, sortOrder as 'ASC' | 'DESC']],
       limit: parseInt(limit.toString()),
       offset,
     });
@@ -318,7 +318,7 @@ export class ProductService {
           required: false,
         },
       ],
-      order: [[sortBy, sortOrder]],
+      order: [[sortBy as string, sortOrder as 'ASC' | 'DESC']],
       limit: parseInt(limit.toString()),
       offset,
     });
@@ -372,8 +372,8 @@ export class ProductService {
       where: {
         isActive: true,
         [Op.or]: [
-          { name: { [Op.iLike]: `%${searchTerm}%` } },
-          { description: { [Op.iLike]: `%${searchTerm}%` } },
+          { name: { [Op.like]: `%${searchTerm}%` } },
+          { description: { [Op.like]: `%${searchTerm}%` } },
         ],
       },
       include: [
@@ -397,7 +397,7 @@ export class ProductService {
           required: false,
         },
       ],
-      order: [[sortBy, sortOrder]],
+      order: [[sortBy as string, sortOrder as 'ASC' | 'DESC']],
       limit: parseInt(limit.toString()),
       offset,
     });
@@ -444,7 +444,7 @@ export class ProductService {
           required: false,
         },
       ],
-      order: [[sortBy, sortOrder]],
+      order: [[sortBy as string, sortOrder as 'ASC' | 'DESC']],
       limit: parseInt(limit.toString()),
       offset,
     });
@@ -485,7 +485,7 @@ export class ProductService {
           required: true,
         },
       ],
-      order: [[sortBy, sortOrder]],
+      order: [[sortBy as string, sortOrder as 'ASC' | 'DESC']],
       limit: parseInt(limit.toString()),
       offset,
     });

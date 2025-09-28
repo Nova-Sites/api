@@ -2,6 +2,11 @@ import { Request, Response } from 'express';
 import { CategoryService } from '@/services/category.service';
 
 import { sendSuccessResponse, sendNotFoundResponse, sendErrorResponse, sendValidationErrorResponse } from '@/utils/responseFormatter';
+import { 
+  validateId,
+  validateStringField,
+  validateSearchTerm
+} from '@/utils/validation';
 import { MESSAGES, HTTP_STATUS } from '@/constants';
 import { asyncHandler } from '@/middlewares/error';
 import { uploadImage, deleteImageByUrl } from '@/utils/cloudinary';
@@ -14,11 +19,14 @@ export const getAllCategories = asyncHandler(async (_req: Request, res: Response
 
 export const getCategoryById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  if (!id) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_ID);
+  
+  // Validate ID
+  const idValidation = validateId(id, 'Category ID');
+  if (!idValidation.isValid) {
+    return sendValidationErrorResponse(res, idValidation.error!);
   }
   
-  const category = await CategoryService.getCategoryById(parseInt(id));
+  const category = await CategoryService.getCategoryById(idValidation.value!);
   if (!category) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.CATEGORY_NOT_FOUND);
   }
@@ -28,11 +36,14 @@ export const getCategoryById = asyncHandler(async (req: Request, res: Response):
 
 export const getCategoryBySlug = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { slug } = req.params;
-  if (!slug) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_SLUG);
+  
+  // Validate slug
+  const slugValidation = validateStringField(slug, 'Slug', true);
+  if (!slugValidation.isValid) {
+    return sendValidationErrorResponse(res, slugValidation.error!);
   }
   
-  const category = await CategoryService.getCategoryBySlug(slug);
+  const category = await CategoryService.getCategoryBySlug(slugValidation.value!);
   if (!category) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.CATEGORY_NOT_FOUND);
   }
@@ -43,6 +54,17 @@ export const getCategoryBySlug = asyncHandler(async (req: Request, res: Response
 export const createCategory = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { name, description } = req.body;
   const file = req.file as UploadedFile;
+
+  // Validate required fields
+  const nameValidation = validateStringField(name, 'Name', true);
+  if (!nameValidation.isValid) {
+    return sendValidationErrorResponse(res, nameValidation.error!);
+  }
+
+  const descriptionValidation = validateStringField(description, 'Description', true);
+  if (!descriptionValidation.isValid) {
+    return sendValidationErrorResponse(res, descriptionValidation.error!);
+  }
 
   if (!file) {
     return sendValidationErrorResponse(res, MESSAGES.ERROR.UPLOAD.NO_FILE_UPLOADED);
@@ -61,9 +83,9 @@ export const createCategory = asyncHandler(async (req: AuthenticatedRequest, res
     }
 
     const payload: any = {
-      name,
+      name: nameValidation.value,
       image: uploadResult.url,
-      description,
+      description: descriptionValidation.value,
     };
     if (req.user?.userId !== undefined) {
       payload.createdBy = req.user.userId;
@@ -87,18 +109,39 @@ export const createCategory = asyncHandler(async (req: AuthenticatedRequest, res
 
 export const updateCategory = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
-  if (!id) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_ID);
-  }
-  
   const { name, description, isActive } = req.body;
   const file = req.file as UploadedFile;
 
+  // Validate ID
+  const idValidation = validateId(id, 'Category ID');
+  if (!idValidation.isValid) {
+    return sendValidationErrorResponse(res, idValidation.error!);
+  }
+
   try {
     const updateData: any = {};
-    if (name !== undefined) updateData.name = name;
-    if (description !== undefined) updateData.description = description;
-    if (isActive !== undefined) updateData.isActive = isActive;
+    
+    // Validate optional fields
+    if (name !== undefined) {
+      const nameValidation = validateStringField(name, 'Name', true);
+      if (!nameValidation.isValid) {
+        return sendValidationErrorResponse(res, nameValidation.error!);
+      }
+      updateData.name = nameValidation.value;
+    }
+    
+    if (description !== undefined) {
+      const descriptionValidation = validateStringField(description, 'Description', true);
+      if (!descriptionValidation.isValid) {
+        return sendValidationErrorResponse(res, descriptionValidation.error!);
+      }
+      updateData.description = descriptionValidation.value;
+    }
+    
+    if (isActive !== undefined) {
+      updateData.isActive = isActive;
+    }
+    
     updateData.updatedBy = req.user?.userId;
 
     // If new image is uploaded
@@ -118,14 +161,14 @@ export const updateCategory = asyncHandler(async (req: AuthenticatedRequest, res
       updateData.image = uploadResult.url;
       
       // Get current category to delete old image
-      const currentCategory = await CategoryService.getCategoryById(parseInt(id));
+      const currentCategory = await CategoryService.getCategoryById(idValidation.value!);
       if (currentCategory && currentCategory.image) {
         // Delete old image from Cloudinary
         await deleteImageByUrl(currentCategory.image);
       }
     }
     
-    const category = await CategoryService.updateCategory(parseInt(id), updateData);
+    const category = await CategoryService.updateCategory(idValidation.value!, updateData);
     
     if (!category) {
       return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.CATEGORY_NOT_FOUND);
@@ -149,11 +192,14 @@ export const updateCategory = asyncHandler(async (req: AuthenticatedRequest, res
 
 export const deleteCategory = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
-  if (!id) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_ID);
+  
+  // Validate ID
+  const idValidation = validateId(id, 'Category ID');
+  if (!idValidation.isValid) {
+    return sendValidationErrorResponse(res, idValidation.error!);
   }
   
-  const success = await CategoryService.deleteCategory(parseInt(id), req.user?.userId);
+  const success = await CategoryService.deleteCategory(idValidation.value!, req.user?.userId);
   if (!success) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.CATEGORY_NOT_FOUND);
   }
@@ -163,11 +209,14 @@ export const deleteCategory = asyncHandler(async (req: AuthenticatedRequest, res
 
 export const softDeleteCategory = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
-  if (!id) {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_ID);
+  
+  // Validate ID
+  const idValidation = validateId(id, 'Category ID');
+  if (!idValidation.isValid) {
+    return sendValidationErrorResponse(res, idValidation.error!);
   }
   
-  const success = await CategoryService.deleteCategory(parseInt(id), req.user?.userId);
+  const success = await CategoryService.deleteCategory(idValidation.value!, req.user?.userId);
   if (!success) {
     return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.CATEGORY_NOT_FOUND);
   }
@@ -177,11 +226,14 @@ export const softDeleteCategory = asyncHandler(async (req: AuthenticatedRequest,
 
 export const searchCategories = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { search } = req.query;
-  if (!search || typeof search !== 'string') {
-    return sendNotFoundResponse(res, MESSAGES.ERROR.CATEGORY.REQUIRED_SEARCH);
+  
+  // Validate search term
+  const searchValidation = validateSearchTerm(search);
+  if (!searchValidation.isValid) {
+    return sendValidationErrorResponse(res, searchValidation.error!);
   }
   
-  const categories = await CategoryService.searchCategories(search);
+  const categories = await CategoryService.searchCategories(searchValidation.value!);
   sendSuccessResponse(res, categories, MESSAGES.SUCCESS.FETCHED);
 });
 
