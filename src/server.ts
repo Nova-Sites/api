@@ -21,7 +21,7 @@ import routes from '@/routes';
 import { errorHandler, notFoundHandler } from '@/middlewares/error';
 import imageOptimizeMiddleware from '@/middlewares/imageOptimizer';
 import { requestLogger, errorLogger, performanceMonitor } from '@/middlewares/logger';
-import { ENV } from '@/lib/env';
+import { ENV, Logger } from '@/lib';
 
 const app = express();
 const server = createServer(app);
@@ -75,10 +75,10 @@ app.use(`${ENV.API_PREFIX}${ENV.API_VERSION}`, routes);
 
 // Socket.IO connection handler
 io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
+  Logger.info(`Client connected: ${socket.id}`);
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    Logger.info(`Client disconnected: ${socket.id}`);
   });
 });
 
@@ -92,52 +92,52 @@ const startServer = async () => {
   try {
     // Test database connection
     await sequelize.authenticate();
-    console.log('✅ Database connection established successfully.');
+    Logger.info('✅ Database connection established successfully.');
 
     // Sync database (in development)
     // if (process.env['NODE_ENV'] === 'development') {
     //   await sequelize.sync({ alter: true });
-    //   console.log('✅ Database synchronized.');
+    //   Logger.info('✅ Database synchronized.');
     // }
 
     const PORT = ENV.PORT || 8000;
     const HOST = ENV.HOST || 'localhost';
 
     server.listen(PORT, () => {
-      console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
-      console.log(`📚 API Documentation: http://${HOST}:${PORT}${ENV.API_PREFIX}${ENV.API_VERSION}/health`);
-      console.log(`🌍 Environment: ${ENV.NODE_ENV || 'development'}`);
-      console.log(`🔒 Security: Helmet, CORS enabled`);
-      console.log(`⚡ Performance: Monitoring enabled`);
+      Logger.info(`🚀 Server is running on http://${HOST}:${PORT}`);
+      Logger.info(`📚 API Documentation: http://${HOST}:${PORT}${ENV.API_PREFIX}${ENV.API_VERSION}/health`);
+      Logger.info(`🌍 Environment: ${ENV.NODE_ENV || 'development'}`);
+      Logger.info(`🔒 Security: Helmet, CORS enabled`);
+      Logger.info(`⚡ Performance: Monitoring enabled`);
     });
   } catch (error) {
-    console.error('❌ Failed to start server:', error);
+    Logger.error(`❌ Failed to start server: ${error}`);
     process.exit(1);
   }
 };
 
 // Graceful shutdown
 const gracefulShutdown = async (signal: string) => {
-  console.log(`${signal} received, shutting down gracefully`);
+  Logger.info(`${signal} received, shutting down gracefully`);
   
   try {
     // Close database connection
     await sequelize.close();
-    console.log('✅ Database connection closed');
+    Logger.info('✅ Database connection closed');
     
     // Close server
     server.close(() => {
-      console.log('✅ Server closed');
+      Logger.info('✅ Server closed');
       process.exit(0);
     });
     
     // Force exit after 10 seconds
     setTimeout(() => {
-      console.error('❌ Could not close connections in time, forcefully shutting down');
+      Logger.error('❌ Could not close connections in time, forcefully shutting down');
       process.exit(1);
     }, 10000);
   } catch (error) {
-    console.error('❌ Error during shutdown:', error);
+    Logger.error(`❌ Error during shutdown: ${error}`);
     process.exit(1);
   }
 };
@@ -147,12 +147,12 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
+  Logger.error(`❌ Uncaught Exception: ${error}`);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  Logger.error(`❌ Unhandled Rejection at: ${promise} Reason: ${reason}`);
   process.exit(1);
 });
 

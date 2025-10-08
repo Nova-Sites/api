@@ -1,63 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS } from '@/constants';
-import { LogData } from '@/types';
+import { Logger } from '@/lib';
 
-class Logger {
-  private static formatLog(data: LogData): string {
-    const { timestamp, method, url, statusCode, responseTime, ip, error } = data;
-    
-    const baseLog = `[${timestamp}] ${method} ${url} ${statusCode} ${responseTime}ms - ${ip}`;
-    
-    if (error) {
-      return `${baseLog} - ERROR: ${error}`;
-    }
-    
-    return baseLog;
-  }
-
-  static info(data: LogData): void {
-    console.log(this.formatLog(data));
-  }
-
-  static error(data: LogData): void {
-    console.error(this.formatLog(data));
-  }
-
-  static warn(data: LogData): void {
-    console.warn(this.formatLog(data));
-  }
-}
+const formatRequest = (method: string, url: string, status: number, time: number, ip: string, msg?: string) => {
+  return `${method} ${url} ${status} ${time}ms - ${ip}${msg ? ' - ' + msg : ''}`;
+};
 
 export const requestLogger = (req: Request, res: Response, next: NextFunction): void => {
   const startTime = Date.now();
-  
-  // Log request start
-  Logger.info({
-    timestamp: new Date().toISOString(),
-    method: req.method,
-    url: req.originalUrl,
-    statusCode: 0,
-    responseTime: 0,
-    ip: req.ip || req.connection.remoteAddress || 'unknown',
-    userAgent: req.get('User-Agent') || 'unknown',
-    requestBody: req.method !== 'GET' ? req.body : undefined,
-  });
+  Logger.info(formatRequest(req.method, req.originalUrl, 0, 0, req.ip || 'unknown', 'Request started'));
 
-  // Override res.end to log response
   const originalEnd = res.end;
-  res.end = function(chunk?: any, encoding?: any): Response {
+  res.end = function (chunk?: any, encoding?: any): Response {
     const responseTime = Date.now() - startTime;
-    
-    Logger.info({
-      timestamp: new Date().toISOString(),
-      method: req.method,
-      url: req.originalUrl,
-      statusCode: res.statusCode,
-      responseTime,
-      ip: req.ip || req.connection.remoteAddress || 'unknown',
-      userAgent: req.get('User-Agent') || 'unknown',
-    });
-
+    Logger.info(formatRequest(req.method, req.originalUrl, res.statusCode, responseTime, req.ip || 'unknown'));
     return originalEnd.call(this, chunk, encoding);
   };
 
@@ -66,45 +22,34 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction): 
 
 export const errorLogger = (error: Error, req: Request, res: Response, next: NextFunction): void => {
   const responseTime = Date.now() - (req as any).startTime || 0;
-  
-  Logger.error({
-    timestamp: new Date().toISOString(),
-    method: req.method,
-    url: req.originalUrl,
-    statusCode: res.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  Logger.error(formatRequest(
+    req.method,
+    req.originalUrl,
+    res.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR,
     responseTime,
-    ip: req.ip || req.connection.remoteAddress || 'unknown',
-    userAgent: req.get('User-Agent') || 'unknown',
-    error: error.message,
-  });
-
+    req.ip || 'unknown',
+    error.message
+  ));
   next(error);
 };
 
-// Performance monitoring middleware
 export const performanceMonitor = (req: Request, res: Response, next: NextFunction): void => {
   const startTime = Date.now();
-  
-  // Add start time to request object
   (req as any).startTime = startTime;
-  
-  // Monitor slow requests (> 1 second)
+
   res.on('finish', () => {
     const responseTime = Date.now() - startTime;
-    
     if (responseTime > 1000) {
-      Logger.warn({
-        timestamp: new Date().toISOString(),
-        method: req.method,
-        url: req.originalUrl,
-        statusCode: res.statusCode,
+      Logger.warn(formatRequest(
+        req.method,
+        req.originalUrl,
+        res.statusCode,
         responseTime,
-        ip: req.ip || req.connection.remoteAddress || 'unknown',
-        userAgent: req.get('User-Agent') || 'unknown',
-        error: `Slow request: ${responseTime}ms`,
-      });
+        req.ip || 'unknown',
+        `Slow request: ${responseTime}ms`
+      ));
     }
   });
 
   next();
-}; 
+};

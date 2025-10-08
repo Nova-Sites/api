@@ -1,26 +1,26 @@
 # Nova Sites API
 
-Backend API cho hệ thống bán website với Node.js, TypeScript, Express và Sequelize.
+Backend API for the website marketplace, built with Node.js, TypeScript, Express, and Sequelize.
 
 ## 🚀 Features
 
 - **TypeScript**: Type-safe development with strict mode
 - **Express.js**: Fast web framework with optimized middleware
-- **Sequelize**: ORM cho database với connection pooling
-- **MySQL**: Database chính với optimized queries
+- **Sequelize**: ORM for the database with connection pooling
+- **MySQL**: Primary database with optimized queries
 - **Socket.IO**: Real-time communication
-- **JWT Authentication**: Secure authentication với refresh tokens
-- **Cookie Management**: HttpOnly cookies với path-based security
-- **File Upload**: Hỗ trợ upload ảnh với validation
-- **API Documentation**: RESTful API với comprehensive docs
-- **Error Handling**: Comprehensive error handling với custom error types
-- **Input Validation**: Express-validator với custom validation rules
-- **CORS**: Cross-origin resource sharing với security headers
-- **Helmet**: Security headers với CSP configuration
-- **Logging**: Custom logging với performance monitoring
-- **Service Layer**: Separation of concerns với business logic isolation
-- **Path Aliases**: Clean imports với `@/` prefix
-- **Graceful Shutdown**: Proper cleanup và error handling
+- **JWT Authentication**: Secure auth with refresh tokens
+- **Cookie Management**: HttpOnly cookies with path-based security
+- **File Upload**: Image uploads with validation
+- **API Documentation**: RESTful API with comprehensive docs
+- **Error Handling**: Comprehensive error handling with custom error types
+- **Input Validation**: Express-validator with custom rules
+- **CORS**: Cross-origin resource sharing with security headers
+- **Helmet**: Security headers with CSP configuration
+- **Logging**: Custom logging with performance monitoring
+- **Service Layer**: Separation of concerns with isolated business logic
+- **Path Aliases**: Clean imports using the `@/` prefix
+- **Graceful Shutdown**: Proper cleanup and error handling
 
 ## 📁 Project Structure
 
@@ -28,13 +28,14 @@ Backend API cho hệ thống bán website với Node.js, TypeScript, Express và
 api/
 ├── src/
 │   ├── config/          # Database configuration
-│   ├── constants/        # Constants và messages
-│   ├── controllers/      # Route controllers (HTTP handling)
-│   ├── middlewares/      # Custom middlewares
-│   ├── migrations/       # Database migrations
+│   ├── constants/       # Constants and messages
+│   ├── controllers/     # Route controllers (HTTP handling)
+│   ├── middlewares/     # Custom middlewares
+│   ├── migrations/      # Database migrations
 │   ├── models/          # Sequelize models
 │   ├── routes/          # API routes
 │   ├── services/        # Business logic layer
+│   ├── lib/             # Shared libraries (e.g., env loader)
 │   ├── types/           # TypeScript types
 │   ├── utils/           # Utility functions
 │   └── server.ts        # Main server file
@@ -43,7 +44,7 @@ api/
 ├── nodemon.json         # Nodemon configuration
 ├── package.json         # Dependencies
 ├── tsconfig.json        # TypeScript configuration
-└── README.md           # This file
+└── README.md            # This file
 ```
 
 ## 🛠️ Installation
@@ -71,8 +72,8 @@ api/
    ```bash
    cp env.example .env
    ```
-   
-   Chỉnh sửa file `.env` với thông tin database và các cấu hình khác:
+
+   Edit the `.env` file with your database connection and other settings:
    ```env
    NODE_ENV=development
    PORT=8000
@@ -85,14 +86,14 @@ api/
 
 4. **Database setup**
    ```bash
-   # Tạo database
+   # Create database
    mysql -u root -p
    CREATE DATABASE nova_sites_db;
-   
-   # Chạy migrations
+
+   # Run migrations
    npm run db:migrate
-   
-   # Chạy seeders (nếu có)
+
+   # Run seeders (if available)
    npm run db:seed:all
    ```
 
@@ -104,60 +105,60 @@ api/
 ## 📚 API Endpoints
 
 ### Authentication
-- `POST /api/v1/auth/register` - Đăng ký tài khoản mới
-- `POST /api/v1/auth/verify-otp` - Xác thực OTP để kích hoạt tài khoản
-- `POST /api/v1/auth/resend-otp` - Gửi lại OTP
-- `POST /api/v1/auth/login` - Đăng nhập (to be implemented)
-- `POST /api/v1/auth/logout` - Đăng xuất (to be implemented)
-- `POST /api/v1/auth/forgot-password` - Quên mật khẩu (to be implemented)
-- `POST /api/v1/auth/reset-password` - Đặt lại mật khẩu (to be implemented)
+- `POST /api/v1/auth/register` - Register a new account
+- `POST /api/v1/auth/verify-otp` - Verify OTP to activate the account
+- `POST /api/v1/auth/resend-otp` - Resend OTP
+- `POST /api/v1/auth/login` - Log in (to be implemented)
+- `POST /api/v1/auth/logout` - Log out (to be implemented)
+- `POST /api/v1/auth/forgot-password` - Forgot password (to be implemented)
+- `POST /api/v1/auth/reset-password` - Reset password (to be implemented)
 
 ### Users
-- `GET /api/v1/users` - Lấy danh sách tất cả users
-- `GET /api/v1/users/:id` - Lấy user theo ID
-- `GET /api/v1/users/profile` - Lấy thông tin profile của user hiện tại (to be implemented)
-- `PUT /api/v1/users/profile` - Cập nhật profile của user hiện tại (to be implemented)
-- `PUT /api/v1/users/profile/avatar` - Cập nhật avatar của user (to be implemented)
-- `PUT /api/v1/users/change-password` - Đổi mật khẩu (to be implemented)
-- `DELETE /api/v1/users/:id` - Xóa user (soft delete)
+- `GET /api/v1/users` - Get all users
+- `GET /api/v1/users/:id` - Get a user by ID
+- `GET /api/v1/users/profile` - Get current user's profile (to be implemented)
+- `PUT /api/v1/users/profile` - Update current user's profile (to be implemented)
+- `PUT /api/v1/users/profile/avatar` - Update user avatar (to be implemented)
+- `PUT /api/v1/users/change-password` - Change password (to be implemented)
+- `DELETE /api/v1/users/:id` - Delete user (soft delete)
 - `PATCH /api/v1/users/:id/soft-delete` - Soft delete user
-- `GET /api/v1/users/role/:role` - Lấy users theo role
-- `GET /api/v1/users/search` - Tìm kiếm users
+- `GET /api/v1/users/role/:role` - Get users by role
+- `GET /api/v1/users/search` - Search users
 
 ### Categories
-- `GET /api/v1/categories` - Lấy danh sách categories
-- `GET /api/v1/categories/search` - Tìm kiếm categories
-- `GET /api/v1/categories/with-product-count` - Lấy categories với số lượng products
-- `GET /api/v1/categories/:id` - Lấy category theo ID
-- `GET /api/v1/categories/slug/:slug` - Lấy category theo slug
-- `POST /api/v1/categories` - Tạo category mới
-- `PUT /api/v1/categories/:id` - Cập nhật category
-- `DELETE /api/v1/categories/:id` - Xóa category
-- `PATCH /api/v1/categories/:id/soft-delete` - Soft delete category
+- `GET /api/v1/categories` - Get all categories
+- `GET /api/v1/categories/search` - Search categories
+- `GET /api/v1/categories/with-product-count` - Get categories with product counts
+- `GET /api/v1/categories/:id` - Get a category by ID
+- `GET /api/v1/categories/slug/:slug` - Get a category by slug
+- `POST /api/v1/categories` - Create a new category
+- `PUT /api/v1/categories/:id` - Update a category
+- `DELETE /api/v1/categories/:id` - Delete a category
+- `PATCH /api/v1/categories/:id/soft-delete` - Soft delete a category
 
 ### Products
-- `GET /api/v1/products` - Lấy danh sách products (có pagination và filtering)
-- `GET /api/v1/products/popular` - Lấy popular products
-- `GET /api/v1/products/search` - Tìm kiếm products
-- `GET /api/v1/products/category/:categoryId` - Lấy products theo category
-- `GET /api/v1/products/price-range/:minPrice/:maxPrice` - Lấy products theo khoảng giá
-- `GET /api/v1/products/:id` - Lấy product theo ID
-- `GET /api/v1/products/slug/:slug` - Lấy product theo slug
-- `POST /api/v1/products` - Tạo product mới
-- `PUT /api/v1/products/:id` - Cập nhật product
-- `DELETE /api/v1/products/:id` - Xóa product
-- `PATCH /api/v1/products/:id/soft-delete` - Soft delete product
+- `GET /api/v1/products` - Get all products (with pagination and filtering)
+- `GET /api/v1/products/popular` - Get popular products
+- `GET /api/v1/products/search` - Search products
+- `GET /api/v1/products/category/:categoryId` - Get products by category
+- `GET /api/v1/products/price-range/:minPrice/:maxPrice` - Get products by price range
+- `GET /api/v1/products/:id` - Get a product by ID
+- `GET /api/v1/products/slug/:slug` - Get a product by slug
+- `POST /api/v1/products` - Create a new product
+- `PUT /api/v1/products/:id` - Update a product
+- `DELETE /api/v1/products/:id` - Delete a product
+- `PATCH /api/v1/products/:id/soft-delete` - Soft delete a product
 
 ### Health Check
-- `GET /api/v1/health` - Kiểm tra trạng thái API
+- `GET /api/v1/health` - API health check
 
 ## 🔧 Constants Structure
 
 ### Route Constants
-Tất cả routes được định nghĩa trong constants để tránh hard-code:
+All routes are defined in constants to avoid hard-coding:
 
 ```typescript
-// Constants được tổ chức trong src/constants/routes.ts
+// Constants organized in src/constants/routes.ts
 export const ROUTES = {
   CATEGORIES: '/categories',
   PRODUCTS: '/products',
@@ -179,43 +180,6 @@ export const PRODUCT_ROUTES = {
 }
 ```
 
-## 🗄️ Database Schema
-
-### Categories Table
-- `id` (INT, PK, Auto Increment)
-- `name` (VARCHAR(255), NOT NULL)
-- `image` (VARCHAR(500), NOT NULL)
-- `slug` (VARCHAR(255), UNIQUE, NOT NULL)
-- `description` (TEXT, NULL)
-- `is_active` (BOOLEAN, DEFAULT TRUE)
-- `created_at` (TIMESTAMP)
-- `updated_at` (TIMESTAMP)
-
-### Products Table
-- `id` (INT, PK, Auto Increment)
-- `name` (VARCHAR(255), NOT NULL)
-- `description` (TEXT, NOT NULL)
-- `image` (VARCHAR(500), NOT NULL)
-- `price` (DECIMAL(10,2), NOT NULL)
-- `views` (INT, DEFAULT 0)
-- `slug` (VARCHAR(255), UNIQUE, NOT NULL)
-- `category_id` (INT, FK to categories.id)
-- `is_active` (BOOLEAN, DEFAULT TRUE)
-- `created_at` (TIMESTAMP)
-- `updated_at` (TIMESTAMP)
-
-### Users Table
-- `id` (INT, PK, Auto Increment)
-- `username` (VARCHAR(50), UNIQUE, NOT NULL)
-- `email` (VARCHAR(255), UNIQUE, NOT NULL)
-- `password` (VARCHAR(255), NOT NULL)
-- `is_active` (BOOLEAN, DEFAULT FALSE)
-- `otp` (VARCHAR(6), NULL)
-- `otp_expires_at` (DATETIME, NULL)
-- `image` (VARCHAR(500), NULL)
-- `role` (ENUM('ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_USER', 'ROLE_GUEST'), DEFAULT 'ROLE_USER')
-- `created_at` (TIMESTAMP)
-- `updated_at` (TIMESTAMP)
 
 ## 🚀 Scripts
 
@@ -249,49 +213,49 @@ npm run test:cookies # Test cookie functionality
 
 ### Creating Admin Accounts
 
-Sau khi setup database và chạy migrations, bạn có thể tạo tài khoản admin bằng các lệnh sau:
+After setting up the database and running migrations, you can create admin accounts using the following commands:
 
-#### Tạo Super Admin Account
+#### Create Super Admin Account
 ```bash
 npm run create:superadmin
 ```
 
-#### Tạo Admin Account
+#### Create Admin Account
 ```bash
 npm run create:admin
 ```
 
-#### Tạo User với Role Tùy Chọn
+#### Create User with Custom Role
 ```bash
 npm run create:user
 ```
 
-Script sẽ yêu cầu bạn nhập:
-- **Username**: 3-50 ký tự, chỉ chứa chữ cái, số và dấu gạch dưới
-- **Email**: Email hợp lệ
-- **Password**: Tối thiểu 6 ký tự
-- **Confirm Password**: Xác nhận lại mật khẩu
-- **Role**: Chọn role từ danh sách có sẵn
+The script will prompt you for:
+- **Username**: 3–50 characters; letters, numbers, and underscores only
+- **Email**: Valid email address
+- **Password**: Minimum 6 characters
+- **Confirm Password**: Re-enter password
+- **Role**: Choose a role from the available list
 
-**Tài khoản Super Admin** sẽ được tạo với:
+**Super Admin account** will be created with:
 - Role: `ROLE_SUPER_ADMIN`
-- Status: `Active` (không cần xác thực OTP)
-- Quyền truy cập đầy đủ vào hệ thống
+- Status: `Active` (no OTP verification required)
+- Full system access
 
-**Tài khoản Admin** sẽ được tạo với:
+**Admin account** will be created with:
 - Role: `ROLE_ADMIN`
-- Status: `Active` (không cần xác thực OTP)
-- Quyền quản lý hệ thống (nhưng không có quyền super admin)
+- Status: `Active` (no OTP verification required)
+- System management permissions (without super admin privileges)
 
-**Tài khoản User với Role Tùy Chọn**:
-- Có thể chọn bất kỳ role nào từ danh sách có sẵn
-- Super Admin, Admin, Staff: `Active` (không cần xác thực OTP)
-- User, Guest: `Inactive` (cần xác thực OTP để kích hoạt)
+**User account with custom role**:
+- You can choose any role from the list
+- Super Admin, Admin, Staff: `Active` (no OTP verification required)
+- User, Guest: `Inactive` (OTP verification required to activate)
 
-**Lưu ý**: 
-- Chỉ tạo một tài khoản super admin duy nhất để quản lý hệ thống
-- Có thể tạo nhiều tài khoản admin để phân chia công việc quản lý
-- Script `create:user` cho phép tạo user với role linh hoạt
+**Notes**:
+- Create only one super admin account for system administration
+- You can create multiple admin accounts to distribute management tasks
+- The `create:user` script allows flexible user creation with custom roles
 
 ## 🔧 Configuration
 
@@ -303,40 +267,41 @@ Script sẽ yêu cầu bạn nhập:
 - Advanced type checking
 
 ### Sequelize
-- MySQL dialect với optimized queries
-- Connection pooling với configurable settings
+- MySQL dialect with optimized queries
+- Connection pooling with configurable settings
 - Timestamps with underscores
 - Foreign key constraints
 - Query optimization
 
 ### Express
-- CORS enabled với security headers
-- Helmet security headers với CSP
-- Custom logging với performance monitoring
+- CORS enabled with security headers
+- Helmet security headers with CSP
+- Custom logging with performance monitoring
 - JSON body parser (10MB limit)
-- Cookie parser với secure options
-- Rate limiting với multiple configurations
-- Caching middleware cho performance
-- Input validation với express-validator
+- Cookie parser with secure options
+- Rate limiting with multiple configurations
+- Caching middleware for performance
+- Input validation with express-validator
+
+### Lib
+- Centralized environment loader at `src/lib/env.ts` with schema validation and typed accessors for config values
 
 ## 🔐 Authentication & Cookie Management
 
 ### JWT Authentication
-- **Access Token**: 24 giờ với path `/`
-- **Refresh Token**: 7 ngày với path `/api/v1/auth/refresh-token`
-- **Dual Token System**: Access token cho API calls, refresh token cho token renewal
-- **Secure Storage**: HttpOnly cookies với path-based security
+- **Access Token**: 24 hours
+- **Refresh Token**: 7 days
+- **Dual Token System**: Access token for API calls, refresh token for renewal
+- **Secure Storage**: HttpOnly cookies with path-based security
 
 ### Cookie Configuration
 - **Access Token Cookie**:
-  - Path: `/` (available for all routes)
   - HttpOnly: `true` (not accessible via JavaScript)
   - Secure: `true` in production (HTTPS only)
   - SameSite: `strict` (CSRF protection)
   - Max Age: 24 hours
 
 - **Refresh Token Cookie**:
-  - Path: `/api/v1/auth/refresh-token` (restricted access)
   - HttpOnly: `true` (not accessible via JavaScript)
   - Secure: `true` in production (HTTPS only)
   - SameSite: `strict` (CSRF protection)
@@ -349,23 +314,23 @@ Script sẽ yêu cầu bạn nhập:
 4. **Logout**: Clear all authentication cookies
 
 ### Security Benefits
-- **Path Isolation**: Refresh token only accessible at specific endpoint
-- **HttpOnly Protection**: Tokens not accessible via XSS attacks
+- **Path Isolation**: Refresh token accessible only at a specific endpoint
+- **HttpOnly Protection**: Tokens not accessible via XSS
 - **Secure Transport**: HTTPS-only in production
 - **CSRF Protection**: SameSite strict prevents cross-site requests
 - **Automatic Cleanup**: Cookies expire automatically
 
 ## 🛡️ Security
 
-- **Helmet.js**: Security headers với CSP configuration
-- **CORS**: Cross-origin resource sharing với whitelist
-- **Input Validation**: Express-validator với custom rules
-- **SQL Injection Prevention**: Sequelize ORM với parameterized queries
+- **Helmet.js**: Security headers with CSP configuration
+- **CORS**: Cross-origin resource sharing with a whitelist
+- **Input Validation**: Express-validator with custom rules
+- **SQL Injection Prevention**: Sequelize ORM with parameterized queries
 - **XSS Protection**: Content Security Policy headers
-- **Rate Limiting**: Multiple rate limiters cho different endpoints
-- **Authentication**: JWT với secure token handling và HttpOnly cookies
-- **File Upload Security**: File type và size validation
-- **Error Handling**: Secure error messages không leak sensitive info
+- **Rate Limiting**: Multiple rate limiters for different endpoints
+- **Authentication**: JWT with secure token handling and HttpOnly cookies
+- **File Upload Security**: File type and size validation
+- **Error Handling**: Secure error messages without leaking sensitive info
 
 ## 📝 Environment Variables
 
@@ -401,4 +366,4 @@ This project is licensed under the ISC License.
 
 ## 🆘 Support
 
-Nếu có vấn đề, vui lòng tạo issue hoặc liên hệ team development.
+If you encounter issues, please open an issue or contact the development team.

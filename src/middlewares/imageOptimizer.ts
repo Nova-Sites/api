@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { deepOptimizeImageUrls, deriveOptimizeOptionsFromRequest, isCloudinaryUrl } from '@/utils/imageOptimizer';
-import { ENV } from '@/lib/env';
+import { ENV } from '@/lib';
 
 /**
  * Middleware tối ưu URL ảnh Cloudinary trong toàn bộ JSON response.
