@@ -1,10 +1,11 @@
 import jwt from 'jsonwebtoken';
 import { IUser, TokenPayload, TokenPair, DecodedToken } from '@/types';
 import { JWT_CONSTANTS, MESSAGES } from '@/constants';
+import { ENV } from '@/lib/env';
 
 export class JWTUtils {
-  private static readonly ACCESS_TOKEN_SECRET = process.env['JWT_ACCESS_SECRET'] || 'your-access-secret-key';
-  private static readonly REFRESH_TOKEN_SECRET = process.env['JWT_REFRESH_SECRET'] || 'your-refresh-secret-key';
+  private static readonly ACCESS_TOKEN_SECRET = ENV.JWT_ACCESS_SECRET || 'your-access-secret-key';
+  private static readonly REFRESH_TOKEN_SECRET = ENV.JWT_REFRESH_SECRET || 'your-refresh-secret-key';
 
   /**
    * Generate access token

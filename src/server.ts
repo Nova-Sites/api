@@ -19,13 +19,15 @@ import '@/models';
 // Import routes and middleware
 import routes from '@/routes';
 import { errorHandler, notFoundHandler } from '@/middlewares/error';
+import imageOptimizeMiddleware from '@/middlewares/imageOptimizer';
 import { requestLogger, errorLogger, performanceMonitor } from '@/middlewares/logger';
+import { ENV } from '@/lib/env';
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env['ALLOWED_ORIGINS']?.split(',') || ['http://localhost:8000'],
+    origin: ENV.ALLOWED_ORIGINS?.split(',') || ['http://localhost:8000'],
     credentials: true,
   },
 });
@@ -44,7 +46,7 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: process.env['ALLOWED_ORIGINS']?.split(',') || ['http://localhost:8000'],
+  origin: ENV.ALLOWED_ORIGINS?.split(',') || ['http://localhost:8000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -65,8 +67,11 @@ app.use(cookieParser());
 // Static files
 app.use('/uploads', express.static('uploads'));
 
+// Image optimization middleware (before routes to catch all responses)
+app.use(imageOptimizeMiddleware);
+
 // API Routes with caching
-app.use(`${process.env['API_PREFIX']}${process.env['API_VERSION']}`, routes);
+app.use(`${ENV.API_PREFIX}${ENV.API_VERSION}`, routes);
 
 // Socket.IO connection handler
 io.on('connection', (socket) => {
@@ -95,13 +100,13 @@ const startServer = async () => {
     //   console.log('✅ Database synchronized.');
     // }
 
-    const PORT = process.env['PORT'] || 8000;
-    const HOST = process.env['HOST'] || 'localhost';
+    const PORT = ENV.PORT || 8000;
+    const HOST = ENV.HOST || 'localhost';
 
     server.listen(PORT, () => {
       console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
-      console.log(`📚 API Documentation: http://${HOST}:${PORT}${process.env['API_PREFIX']}${process.env['API_VERSION']}/health`);
-      console.log(`🌍 Environment: ${process.env['NODE_ENV'] || 'development'}`);
+      console.log(`📚 API Documentation: http://${HOST}:${PORT}${ENV.API_PREFIX}${ENV.API_VERSION}/health`);
+      console.log(`🌍 Environment: ${ENV.NODE_ENV || 'development'}`);
       console.log(`🔒 Security: Helmet, CORS enabled`);
       console.log(`⚡ Performance: Monitoring enabled`);
     });

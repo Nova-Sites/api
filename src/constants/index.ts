@@ -1,3 +1,5 @@
+import { ENV } from '@/lib/env';
+
 // HTTP Status Codes
 export const HTTP_STATUS = {
   OK: 200,
@@ -234,7 +236,7 @@ export const COOKIE_CONSTANTS = {
   ACCESS_TOKEN_COOKIE_NAME: 'access_token',
   REFRESH_TOKEN_COOKIE_NAME: 'refresh_token',
   ACCESS_TOKEN_COOKIE_PATH: '/',
-  REFRESH_TOKEN_COOKIE_PATH: `${process.env['API_PREFIX']}${process.env['API_VERSION']}/auth/refresh-token`,
+  REFRESH_TOKEN_COOKIE_PATH: `${ENV.API_PREFIX}${ENV.API_VERSION}/auth/refresh-token`,
 } as const;
 
 // SameSite Options

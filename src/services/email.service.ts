@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { OTP_CONSTANTS } from '@/constants';
+import { ENV } from '@/lib/env';
 
 export class EmailService {
   private static transporter: nodemailer.Transporter;
@@ -9,12 +10,12 @@ export class EmailService {
    */
   static initializeTransporter() {
     this.transporter = nodemailer.createTransport({
-      host: process.env['EMAIL_HOST'] || 'smtp.gmail.com',
-      port: parseInt(process.env['EMAIL_PORT'] || '587'),
+      host: ENV.EMAIL_HOST || 'smtp.gmail.com',
+      port: parseInt(ENV.EMAIL_PORT || '587'),
       secure: false, // true for 465, false for other ports
       auth: {
-        user: process.env['EMAIL_USER'],
-        pass: process.env['EMAIL_PASS'],
+        user: ENV.EMAIL_USER,
+        pass: ENV.EMAIL_PASS,
       },
     });
   }
@@ -36,7 +37,7 @@ export class EmailService {
       }
 
       const mailOptions = {
-        from: process.env['EMAIL_USER'],
+        from: ENV.EMAIL_USER,
         to: email,
         subject: 'Xác thực tài khoản - Nova Sites',
         html: `
@@ -87,10 +88,10 @@ export class EmailService {
         this.initializeTransporter();
       }
 
-      const resetUrl = `${process.env['FRONTEND_URL'] || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+      const resetUrl = `${ENV.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
       const mailOptions = {
-        from: process.env['EMAIL_USER'],
+        from: ENV.EMAIL_USER,
         to: email,
         subject: 'Đặt lại mật khẩu - Nova Sites',
         html: `
