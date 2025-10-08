@@ -16,8 +16,8 @@ async function testUploadSystem() {
   Logger.info(`   Cloudinary configured: ${isConfigured ? '✅' : '❌'}`);
   
   if (!isConfigured) {
-    Logger.info('   ❌ Please configure Cloudinary environment variables');
-    Logger.info('   Required: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
+    Logger.error('   ❌ Please configure Cloudinary environment variables');
+    Logger.error('   Required: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
     return;
   }
 
@@ -57,15 +57,15 @@ async function testUploadSystem() {
         if (deleteResult.success) {
           Logger.info('   ✅ Image delete successful');
         } else {
-          Logger.info(`   ❌ Image delete failed: ${deleteResult.error}`);
+          Logger.error(`   ❌ Image delete failed: ${deleteResult.error}`);
         }
       }
     } else {
-      Logger.info(`   ❌ Single image upload failed: ${uploadResult.error}`);
+      Logger.error(`   ❌ Single image upload failed: ${uploadResult.error}`);
     }
 
   } catch (error) {
-    Logger.info(`   ❌ Upload test error: ${error}`);
+    Logger.error(`   ❌ Upload test error: ${error}`);
   }
 
   // Test 3: Test avatar upload
@@ -83,10 +83,10 @@ async function testUploadSystem() {
         Logger.info('   🗑️ Test avatar cleaned up');
       }
     } else {
-      Logger.info(`   ❌ Avatar upload failed: ${avatarResult.error}`);
+      Logger.error(`   ❌ Avatar upload failed: ${avatarResult.error}`);
     }
   } catch (error) {
-    Logger.info(`   ❌ Avatar test error: ${error}`);
+    Logger.error(`   ❌ Avatar test error: ${error}`);
   }
 
   // Test 4: Test multiple upload
@@ -113,10 +113,10 @@ async function testUploadSystem() {
         Logger.info(`   🗑️ Cleanup: ${urls.length} images deleted`);
       }
     } else {
-      Logger.info(`   ❌ Multiple upload failed`);
+      Logger.error(`   ❌ Multiple upload failed`);
     }
   } catch (error) {
-    Logger.info(`   ❌ Multiple upload test error: ${error}`);
+    Logger.error(`   ❌ Multiple upload test error: ${error}`);
   }
 
   Logger.info('\n🎉 Upload system test completed!');

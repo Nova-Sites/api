@@ -15,8 +15,8 @@ async function testUploadIntegration() {
   Logger.info(`   Cloudinary configured: ${isConfigured ? '✅' : '❌'}`);
   
   if (!isConfigured) {
-    Logger.info('   ❌ Please configure Cloudinary environment variables');
-    Logger.info('   Required: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
+    Logger.error('   ❌ Please configure Cloudinary environment variables');
+    Logger.error('   Required: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
     return;
   }
 
@@ -55,10 +55,10 @@ async function testUploadIntegration() {
         }
       }
     } else {
-      Logger.info(`   ❌ Category image upload failed: ${categoryResult.error}`);
+      Logger.error(`   ❌ Category image upload failed: ${categoryResult.error}`);
     }
   } catch (error) {
-    Logger.info(`   ❌ Category upload test error: ${error}`);
+    Logger.error(`   ❌ Category upload test error: ${error}`);
   }
 
   // Test 3: Test Product Image Upload
@@ -83,10 +83,10 @@ async function testUploadIntegration() {
         }
       }
     } else {
-      Logger.info(`   ❌ Product image upload failed: ${productResult.error}`);
+      Logger.error(`   ❌ Product image upload failed: ${productResult.error}`);
     }
   } catch (error) {
-    Logger.info(`   ❌ Product upload test error: ${error}`);
+    Logger.error(`   ❌ Product upload test error: ${error}`);
   }
 
   // Test 4: Test User Avatar Upload
@@ -106,10 +106,10 @@ async function testUploadIntegration() {
         }
       }
     } else {
-      Logger.info(`   ❌ User avatar upload failed: ${avatarResult.error}`);
+      Logger.error(`   ❌ User avatar upload failed: ${avatarResult.error}`);
     }
   } catch (error) {
-    Logger.info(`   ❌ User avatar test error: ${error}`);
+    Logger.error(`   ❌ User avatar test error: ${error}`);
   }
 
   // Test 5: Test Multiple Images Upload
@@ -135,10 +135,10 @@ async function testUploadIntegration() {
           Logger.info(`   🗑️ Cleanup: ${urls.length} images deleted`);
         }
       } else {
-        Logger.info(`   ❌ Multiple upload failed`);
+        Logger.error(`   ❌ Multiple upload failed`);
       }
   } catch (error) {
-    Logger.info(`   ❌ Multiple upload test error: ${error}`);
+    Logger.error(`   ❌ Multiple upload test error: ${error}`);
   }
 
   Logger.info('\n🎉 Upload integration test completed!');
