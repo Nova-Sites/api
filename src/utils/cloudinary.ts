@@ -2,15 +2,16 @@ import { v2 as cloudinary, UploadApiResponse, UploadApiErrorResponse } from 'clo
 import streamifier from 'streamifier';
 import dotenv from 'dotenv';
 import { CloudinaryUploadOptions, CloudinaryUploadResult, CloudinaryDeleteResult } from '@/types';
+import { ENV } from '@/lib/env';
 
 // Load environment variables
 dotenv.config();
 
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: process.env['CLOUDINARY_CLOUD_NAME'] || '',
-  api_key: process.env['CLOUDINARY_API_KEY'] || '',
-  api_secret: process.env['CLOUDINARY_API_SECRET'] || '',
+  cloud_name: ENV.CLOUDINARY_CLOUD_NAME || '',
+  api_key: ENV.CLOUDINARY_API_KEY || '',
+  api_secret: ENV.CLOUDINARY_API_SECRET || '',
 });
 
 
@@ -245,9 +246,9 @@ export const uploadMultipleImages = async (
  */
 export const isCloudinaryConfigured = (): boolean => {
   return !!(
-    process.env['CLOUDINARY_CLOUD_NAME'] &&
-    process.env['CLOUDINARY_API_KEY'] &&
-    process.env['CLOUDINARY_API_SECRET']
+    ENV.CLOUDINARY_CLOUD_NAME &&
+    ENV.CLOUDINARY_API_KEY &&
+    ENV.CLOUDINARY_API_SECRET
   );
 };
 

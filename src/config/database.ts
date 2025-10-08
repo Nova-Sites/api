@@ -1,17 +1,18 @@
 import dotenv from 'dotenv';
 import { Sequelize } from 'sequelize';
 import { DatabaseConfig } from '@/types';
+import { ENV } from '@/lib/env';
 
 dotenv.config();
-const env = process.env['NODE_ENV'] || 'development';
+const env = ENV.NODE_ENV || 'development';
 
 const config: DatabaseConfig = {
     development: {
-        username: process.env['DB_USER'] || 'root',
-        password: process.env['DB_PASSWORD'] || '',
-        database: process.env['DB_NAME'] || 'nova_sites_db',
-        host: process.env['DB_HOST'] || 'localhost',
-        port: parseInt(process.env['DB_PORT'] || '3306'),
+        username: ENV.DB_USER || 'root',
+        password: ENV.DB_PASSWORD || '',
+        database: ENV.DB_NAME || 'nova_sites_db',
+        host: ENV.DB_HOST || 'localhost',
+        port: parseInt(ENV.DB_PORT || '3306'),
         dialect: 'mysql',
         logging: console.log,
         pool: {
@@ -41,10 +42,10 @@ const config: DatabaseConfig = {
         }
     },
     production: {
-        username: process.env['DB_USER'] || '',
-        password: process.env['DB_PASSWORD'] || '',
-        database: process.env['DB_NAME'] || '',
-        host: process.env['DB_HOST'] || '',
+        username: ENV.DB_USER || '',
+        password: ENV.DB_PASSWORD || '',
+        database: ENV.DB_NAME || '',
+        host: ENV.DB_HOST || '',
         dialect: 'mysql',
         logging: false,
         pool: {

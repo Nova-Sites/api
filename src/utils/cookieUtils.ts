@@ -1,11 +1,12 @@
 import { Response } from 'express';
 import { COOKIE_CONSTANTS, SAME_SITE_OPTIONS, TOKEN_TYPES, TOKEN_EXPIRATION_CONSTANTS, PRODUCTION_ENVIRONMENT } from '@/constants';
 import { CookieOptions } from '@/types';
+import { ENV } from '@/lib/env';
 
 export class CookieUtils {
   private static readonly DEFAULT_OPTIONS: Partial<CookieOptions> = {
     httpOnly: true,
-    secure: process.env['NODE_ENV'] === PRODUCTION_ENVIRONMENT,
+    secure: ENV.NODE_ENV === PRODUCTION_ENVIRONMENT,
     sameSite: SAME_SITE_OPTIONS.STRICT,
   };
 
@@ -42,7 +43,7 @@ export class CookieUtils {
     res.clearCookie(COOKIE_CONSTANTS.ACCESS_TOKEN_COOKIE_NAME, {
       path: COOKIE_CONSTANTS.ACCESS_TOKEN_COOKIE_PATH,
       httpOnly: true,
-      secure: process.env['NODE_ENV'] === PRODUCTION_ENVIRONMENT,
+      secure: ENV.NODE_ENV === PRODUCTION_ENVIRONMENT,
       sameSite: SAME_SITE_OPTIONS.STRICT,
     });
   }
@@ -54,7 +55,7 @@ export class CookieUtils {
     res.clearCookie(COOKIE_CONSTANTS.REFRESH_TOKEN_COOKIE_NAME, {
       path: COOKIE_CONSTANTS.REFRESH_TOKEN_COOKIE_PATH,
       httpOnly: true,
-      secure: process.env['NODE_ENV'] === PRODUCTION_ENVIRONMENT,
+      secure: ENV.NODE_ENV === PRODUCTION_ENVIRONMENT,
       sameSite: SAME_SITE_OPTIONS.STRICT,
     });
   }

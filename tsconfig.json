@@ -37,7 +37,7 @@
       "@/scripts/*": ["src/scripts/*"],
       "@/seeders/*": ["src/seeders/*"],
       "@/utils/*": ["src/utils/*"],
-      "@/env/*": ["src/env/*"]
+      "@/lib/*": ["src/lib/*"]
     }
   },
   "include": [

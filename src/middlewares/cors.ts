@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS } from '@/constants';
+import { ENV } from '@/lib/env';
 
 interface CorsOptions {
   origin?: string | string[] | boolean | ((origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => void);
@@ -123,7 +124,7 @@ const setCorsHeaders = (
 
 // Predefined CORS configurations
 export const corsMiddleware = createCorsMiddleware({
-  origin: process.env['NODE_ENV'] === 'production' 
+  origin: ENV.NODE_ENV === 'production' 
     ? ['https://yourdomain.com', 'https://www.yourdomain.com']
     : ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
