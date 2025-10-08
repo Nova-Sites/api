@@ -2,7 +2,7 @@ import { v2 as cloudinary, UploadApiResponse, UploadApiErrorResponse } from 'clo
 import streamifier from 'streamifier';
 import dotenv from 'dotenv';
 import { CloudinaryUploadOptions, CloudinaryUploadResult, CloudinaryDeleteResult } from '@/types';
-import { ENV } from '@/lib/env';
+import { ENV } from '@/lib';
 
 // Load environment variables
 dotenv.config();

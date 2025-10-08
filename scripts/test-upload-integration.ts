@@ -1,21 +1,22 @@
 import { uploadImage, uploadAvatar, uploadMultipleImages, deleteImageByUrl } from '../src/utils/cloudinary';
 import { isCloudinaryConfigured } from '../src/utils/cloudinary';
+import { Logger } from '../src/lib';
 
 // Load environment variables
 import dotenv from 'dotenv';
 dotenv.config();
 
 async function testUploadIntegration() {
-  console.log('🧪 Testing Upload Integration for Product, Category, and User...\n');
+  Logger.info('🧪 Testing Upload Integration for Product, Category, and User...\n');
 
   // Test 1: Check Cloudinary configuration
-  console.log('1. Testing Cloudinary Configuration...');
+  Logger.info('1. Testing Cloudinary Configuration...');
   const isConfigured = isCloudinaryConfigured();
-  console.log(`   Cloudinary configured: ${isConfigured ? '✅' : '❌'}`);
+  Logger.info(`   Cloudinary configured: ${isConfigured ? '✅' : '❌'}`);
   
   if (!isConfigured) {
-    console.log('   ❌ Please configure Cloudinary environment variables');
-    console.log('   Required: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
+    Logger.info('   ❌ Please configure Cloudinary environment variables');
+    Logger.info('   Required: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
     return;
   }
 
@@ -33,7 +34,7 @@ async function testUploadIntegration() {
   ]);
 
   // Test 2: Test Category Image Upload
-  console.log('\n2. Testing Category Image Upload...');
+  Logger.info('\n2. Testing Category Image Upload...');
   try {
     const categoryResult = await uploadImage(
       sampleImageBuffer,
@@ -42,26 +43,26 @@ async function testUploadIntegration() {
     );
 
     if (categoryResult.success) {
-      console.log('   ✅ Category image upload successful');
-      console.log(`   📷 URL: ${categoryResult.url}`);
-      console.log(`   🆔 Public ID: ${categoryResult.public_id}`);
+      Logger.info('   ✅ Category image upload successful');
+      Logger.info(`   📷 URL: ${categoryResult.url}`);
+      Logger.info(`   🆔 Public ID: ${categoryResult.public_id}`);
 
       // Clean up test category image
       if (categoryResult.url) {
         const deleteResult = await deleteImageByUrl(categoryResult.url);
         if (deleteResult.success) {
-          console.log('   🗑️ Test category image cleaned up');
+          Logger.info('   🗑️ Test category image cleaned up');
         }
       }
     } else {
-      console.log(`   ❌ Category image upload failed: ${categoryResult.error}`);
+      Logger.info(`   ❌ Category image upload failed: ${categoryResult.error}`);
     }
   } catch (error) {
-    console.log(`   ❌ Category upload test error: ${error}`);
+    Logger.info(`   ❌ Category upload test error: ${error}`);
   }
 
   // Test 3: Test Product Image Upload
-  console.log('\n3. Testing Product Image Upload...');
+  Logger.info('\n3. Testing Product Image Upload...');
   try {
           const productResult = await uploadImage(
       sampleImageBuffer,
@@ -70,49 +71,49 @@ async function testUploadIntegration() {
     );
 
     if (productResult.success) {
-      console.log('   ✅ Product image upload successful');
-      console.log(`   📷 URL: ${productResult.url}`);
-      console.log(`   🆔 Public ID: ${productResult.public_id}`);
+      Logger.info('   ✅ Product image upload successful');
+      Logger.info(`   📷 URL: ${productResult.url}`);
+      Logger.info(`   🆔 Public ID: ${productResult.public_id}`);
 
       // Clean up test product image
       if (productResult.url) {
         const deleteResult = await deleteImageByUrl(productResult.url);
         if (deleteResult.success) {
-          console.log('   🗑️ Test product image cleaned up');
+          Logger.info('   🗑️ Test product image cleaned up');
         }
       }
     } else {
-      console.log(`   ❌ Product image upload failed: ${productResult.error}`);
+      Logger.info(`   ❌ Product image upload failed: ${productResult.error}`);
     }
   } catch (error) {
-    console.log(`   ❌ Product upload test error: ${error}`);
+    Logger.info(`   ❌ Product upload test error: ${error}`);
   }
 
   // Test 4: Test User Avatar Upload
-  console.log('\n4. Testing User Avatar Upload...');
+  Logger.info('\n4. Testing User Avatar Upload...');
   try {
           const avatarResult = await uploadAvatar(sampleImageBuffer, 999);
     
     if (avatarResult.success) {
-      console.log('   ✅ User avatar upload successful');
-      console.log(`   👤 Avatar URL: ${avatarResult.url}`);
+      Logger.info('   ✅ User avatar upload successful');
+      Logger.info(`   👤 Avatar URL: ${avatarResult.url}`);
       
       // Clean up test avatar
       if (avatarResult.url) {
         const deleteResult = await deleteImageByUrl(avatarResult.url);
         if (deleteResult.success) {
-          console.log('   🗑️ Test avatar cleaned up');
+          Logger.info('   🗑️ Test avatar cleaned up');
         }
       }
     } else {
-      console.log(`   ❌ User avatar upload failed: ${avatarResult.error}`);
+      Logger.info(`   ❌ User avatar upload failed: ${avatarResult.error}`);
     }
   } catch (error) {
-    console.log(`   ❌ User avatar test error: ${error}`);
+    Logger.info(`   ❌ User avatar test error: ${error}`);
   }
 
   // Test 5: Test Multiple Images Upload
-  console.log('\n5. Testing Multiple Images Upload...');
+  Logger.info('\n5. Testing Multiple Images Upload...');
   try {
           const multipleResults = await uploadMultipleImages(
       [sampleImageBuffer, sampleImageBuffer],
@@ -123,35 +124,35 @@ async function testUploadIntegration() {
       const urls = multipleResults.filter(result => result.success).map(result => result.url!);
       
       if (successCount > 0) {
-        console.log(`   ✅ Multiple upload successful: ${successCount}/${multipleResults.length}`);
-        console.log(`   📷 URLs: ${urls.join(', ')}`);
+        Logger.info(`   ✅ Multiple upload successful: ${successCount}/${multipleResults.length}`);
+        Logger.info(`   📷 URLs: ${urls.join(', ')}`);
         
         // Clean up test images
         if (urls.length > 0) {
           for (const url of urls) {
             await deleteImageByUrl(url);
           }
-          console.log(`   🗑️ Cleanup: ${urls.length} images deleted`);
+          Logger.info(`   🗑️ Cleanup: ${urls.length} images deleted`);
         }
       } else {
-        console.log(`   ❌ Multiple upload failed`);
+        Logger.info(`   ❌ Multiple upload failed`);
       }
   } catch (error) {
-    console.log(`   ❌ Multiple upload test error: ${error}`);
+    Logger.info(`   ❌ Multiple upload test error: ${error}`);
   }
 
-  console.log('\n🎉 Upload integration test completed!');
-  console.log('\n📋 Summary:');
-  console.log('   - Category images: Upload to "categories" folder');
-  console.log('   - Product images: Upload to "products" folder');
-  console.log('   - User avatars: Upload to "avatars" folder with user ID');
-  console.log('   - All images are optimized and converted to WebP format');
-  console.log('   - Automatic cleanup of old images when updating');
+  Logger.info('\n🎉 Upload integration test completed!');
+  Logger.info('\n📋 Summary:');
+  Logger.info('   - Category images: Upload to "categories" folder');
+  Logger.info('   - Product images: Upload to "products" folder');
+  Logger.info('   - User avatars: Upload to "avatars" folder with user ID');
+  Logger.info('   - All images are optimized and converted to WebP format');
+  Logger.info('   - Automatic cleanup of old images when updating');
 }
 
 // Run the test
 if (require.main === module) {
-  testUploadIntegration().catch(console.error);
+  testUploadIntegration().catch(error => Logger.error(`❌ Test failed: ${error}`));
 }
 
 export { testUploadIntegration };

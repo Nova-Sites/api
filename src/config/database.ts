@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { Sequelize } from 'sequelize';
 import { DatabaseConfig } from '@/types';
-import { ENV } from '@/lib/env';
+import { ENV } from '@/lib';
 
 dotenv.config();
 const env = ENV.NODE_ENV || 'development';

@@ -4,6 +4,8 @@ import sequelize from '../src/config/database';
 import { UserValidationUtils } from '../src/utils/userValidation';
 import { USER_ROLES } from '../src/constants';
 import readline from 'readline';
+import { Logger } from '../src/lib';
+
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -18,11 +20,11 @@ const question = (query: string): Promise<string> => {
 
 async function createAdmin() {
   try {
-    console.log('🚀 Creating Admin Account...\n');
+    Logger.info('🚀 Creating Admin Account...\n');
 
     // Test database connection
     await sequelize.authenticate();
-    console.log('✅ Database connection established successfully.');
+    Logger.info('✅ Database connection established successfully.');
 
     // Get user input
     const username = await question('Enter username (3-50 characters, alphanumeric and underscore only): ');
@@ -35,8 +37,7 @@ async function createAdmin() {
     const validation = UserValidationUtils.validateUserData(validationData);
 
     if (!validation.isValid) {
-      console.error('❌ Validation errors:');
-      validation.errors.forEach(error => console.error(`   - ${error}`));
+      validation.errors.forEach(error => Logger.error(`   - ${error}`));
       process.exit(1);
     }
 
@@ -49,22 +50,22 @@ async function createAdmin() {
     });
 
     if (!result.success) {
-      console.error(`❌ ${result.error}`);
+      Logger.error(`❌ ${result.error}`);
       process.exit(1);
     }
 
     const admin = result.user;
-    console.log('\n✅ Admin account created successfully!');
-    console.log('📋 Account Details:');
-    console.log(`   Username: ${admin.username}`);
-    console.log(`   Email: ${admin.email}`);
-    console.log(`   Role: ${admin.role}`);
-    console.log(`   Status: ${admin.isActive ? 'Active' : 'Inactive'}`);
-    console.log(`   Created: ${admin.createdAt}`);
-    console.log('\n🔐 You can now login with these credentials.');
+    Logger.info('\n✅ Admin account created successfully!');
+    Logger.info('📋 Account Details:');
+    Logger.info(`   Username: ${admin.username}`);
+    Logger.info(`   Email: ${admin.email}`);
+    Logger.info(`   Role: ${admin.role}`);
+    Logger.info(`   Status: ${admin.isActive ? 'Active' : 'Inactive'}`);
+    Logger.info(`   Created: ${admin.createdAt}`);
+    Logger.info('\n🔐 You can now login with these credentials.');
 
   } catch (error) {
-    console.error('❌ Error creating admin account:', error);
+    Logger.error(`❌ Error creating admin account: ${error}` );
     process.exit(1);
   } finally {
     rl.close();

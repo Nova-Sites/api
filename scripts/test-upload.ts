@@ -1,27 +1,28 @@
 import fs from 'fs';
 import path from 'path';
 import { uploadImage, uploadAvatar, uploadMultipleImages, deleteImageByUrl, isCloudinaryConfigured } from '../src/utils/cloudinary';
+import { Logger } from '../src/lib';
 
 // Load environment variables
 import dotenv from 'dotenv';
 dotenv.config();
 
 async function testUploadSystem() {
-  console.log('🧪 Testing Upload System...\n');
+  Logger.info('🧪 Testing Upload System...\n');
 
   // Test 1: Check Cloudinary configuration
-  console.log('1. Testing Cloudinary Configuration...');
+  Logger.info('1. Testing Cloudinary Configuration...');
   const isConfigured = isCloudinaryConfigured();
-  console.log(`   Cloudinary configured: ${isConfigured ? '✅' : '❌'}`);
+  Logger.info(`   Cloudinary configured: ${isConfigured ? '✅' : '❌'}`);
   
   if (!isConfigured) {
-    console.log('   ❌ Please configure Cloudinary environment variables');
-    console.log('   Required: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
+    Logger.info('   ❌ Please configure Cloudinary environment variables');
+    Logger.info('   Required: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
     return;
   }
 
   // Test 2: Test with a sample image buffer (1x1 PNG)
-  console.log('\n2. Testing Image Upload...');
+  Logger.info('\n2. Testing Image Upload...');
   
   // Create a minimal 1x1 PNG image buffer for testing
   const sampleImageBuffer = Buffer.from([
@@ -45,51 +46,51 @@ async function testUploadSystem() {
     );
 
     if (uploadResult.success) {
-      console.log('   ✅ Single image upload successful');
-      console.log(`   📷 URL: ${uploadResult.url}`);
-      console.log(`   🆔 Public ID: ${uploadResult.public_id}`);
+      Logger.info('   ✅ Single image upload successful');
+      Logger.info(`   📷 URL: ${uploadResult.url}`);
+      Logger.info(`   🆔 Public ID: ${uploadResult.public_id}`);
 
       // Test delete image
-      console.log('\n3. Testing Image Delete...');
+      Logger.info('\n3. Testing Image Delete...');
       if (uploadResult.url) {
         const deleteResult = await deleteImageByUrl(uploadResult.url);
         if (deleteResult.success) {
-          console.log('   ✅ Image delete successful');
+          Logger.info('   ✅ Image delete successful');
         } else {
-          console.log(`   ❌ Image delete failed: ${deleteResult.error}`);
+          Logger.info(`   ❌ Image delete failed: ${deleteResult.error}`);
         }
       }
     } else {
-      console.log(`   ❌ Single image upload failed: ${uploadResult.error}`);
+      Logger.info(`   ❌ Single image upload failed: ${uploadResult.error}`);
     }
 
   } catch (error) {
-    console.log(`   ❌ Upload test error: ${error}`);
+    Logger.info(`   ❌ Upload test error: ${error}`);
   }
 
   // Test 3: Test avatar upload
-  console.log('\n4. Testing Avatar Upload...');
+  Logger.info('\n4. Testing Avatar Upload...');
   try {
     const avatarResult = await uploadAvatar(sampleImageBuffer, 999);
     
     if (avatarResult.success) {
-      console.log('   ✅ Avatar upload successful');
-      console.log(`   👤 Avatar URL: ${avatarResult.url}`);
+      Logger.info('   ✅ Avatar upload successful');
+      Logger.info(`   👤 Avatar URL: ${avatarResult.url}`);
       
       // Clean up test avatar
       if (avatarResult.url) {
         await deleteImageByUrl(avatarResult.url);
-        console.log('   🗑️ Test avatar cleaned up');
+        Logger.info('   🗑️ Test avatar cleaned up');
       }
     } else {
-      console.log(`   ❌ Avatar upload failed: ${avatarResult.error}`);
+      Logger.info(`   ❌ Avatar upload failed: ${avatarResult.error}`);
     }
   } catch (error) {
-    console.log(`   ❌ Avatar test error: ${error}`);
+    Logger.info(`   ❌ Avatar test error: ${error}`);
   }
 
   // Test 4: Test multiple upload
-  console.log('\n5. Testing Multiple Upload...');
+  Logger.info('\n5. Testing Multiple Upload...');
   try {
     const multipleResults = await uploadMultipleImages(
       [sampleImageBuffer, sampleImageBuffer],
@@ -101,29 +102,29 @@ async function testUploadSystem() {
     const urls = multipleResults.filter(result => result.success).map(result => result.url!);
     
     if (successCount > 0) {
-      console.log(`   ✅ Multiple upload successful: ${successCount}/${multipleResults.length}`);
-      console.log(`   📷 URLs: ${urls.join(', ')}`);
+      Logger.info(`   ✅ Multiple upload successful: ${successCount}/${multipleResults.length}`);
+      Logger.info(`   📷 URLs: ${urls.join(', ')}`);
       
       // Clean up test images
       if (urls.length > 0) {
         for (const url of urls) {
           await deleteImageByUrl(url);
         }
-        console.log(`   🗑️ Cleanup: ${urls.length} images deleted`);
+        Logger.info(`   🗑️ Cleanup: ${urls.length} images deleted`);
       }
     } else {
-      console.log(`   ❌ Multiple upload failed`);
+      Logger.info(`   ❌ Multiple upload failed`);
     }
   } catch (error) {
-    console.log(`   ❌ Multiple upload test error: ${error}`);
+    Logger.info(`   ❌ Multiple upload test error: ${error}`);
   }
 
-  console.log('\n🎉 Upload system test completed!');
+  Logger.info('\n🎉 Upload system test completed!');
 }
 
 // Run the test
 if (require.main === module) {
-  testUploadSystem().catch(console.error);
+  testUploadSystem().catch(error => Logger.error(`❌ Test failed: ${error}`));
 }
 
 export { testUploadSystem };

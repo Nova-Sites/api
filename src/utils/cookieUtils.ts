@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { COOKIE_CONSTANTS, SAME_SITE_OPTIONS, TOKEN_TYPES, TOKEN_EXPIRATION_CONSTANTS, PRODUCTION_ENVIRONMENT } from '@/constants';
 import { CookieOptions } from '@/types';
-import { ENV } from '@/lib/env';
+import { ENV } from '@/lib';
 
 export class CookieUtils {
   private static readonly DEFAULT_OPTIONS: Partial<CookieOptions> = {

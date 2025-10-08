@@ -1,4 +1,4 @@
-import { ENV } from '@/lib/env';
+import { ENV } from '@/lib';
 
 // HTTP Status Codes
 export const HTTP_STATUS = {

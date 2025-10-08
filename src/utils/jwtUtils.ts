@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { IUser, TokenPayload, TokenPair, DecodedToken } from '@/types';
 import { JWT_CONSTANTS, MESSAGES } from '@/constants';
-import { ENV } from '@/lib/env';
+import { ENV } from '@/lib';
 
 export class JWTUtils {
   private static readonly ACCESS_TOKEN_SECRET = ENV.JWT_ACCESS_SECRET || 'your-access-secret-key';

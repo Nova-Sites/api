@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { OTP_CONSTANTS } from '@/constants';
-import { ENV } from '@/lib/env';
+import { ENV } from '@/lib';
 
 export class EmailService {
   private static transporter: nodemailer.Transporter;
@@ -70,8 +70,7 @@ export class EmailService {
         `,
       };
 
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent: %s', info.messageId);
+      await this.transporter.sendMail(mailOptions);
       return true;
     } catch (error) {
       console.error('Error sending email:', error);
@@ -132,8 +131,7 @@ export class EmailService {
         `,
       };
 
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log('Password reset email sent: %s', info.messageId);
+      await this.transporter.sendMail(mailOptions);
       return true;
     } catch (error) {
       console.error('Error sending password reset email:', error);

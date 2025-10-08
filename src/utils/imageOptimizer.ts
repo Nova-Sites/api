@@ -1,4 +1,4 @@
-import { ENV } from '@/lib/env';
+import { ENV } from '@/lib';
 import type { Request } from 'express';
 
 const CLOUDINARY_HOST_MARKERS = [
